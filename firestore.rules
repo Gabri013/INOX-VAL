@@ -1,0 +1,279 @@
+rules_version = '2';
+
+/**
+ * ============================================================================
+ * FIRESTORE SECURITY RULES - ERP INDUSTRIAL
+ * ============================================================================
+ * 
+ * Regras de segurança multi-tenant:
+ * - Usuário só acessa dados da própria empresa (tenantId)
+ * - Validação de campos obrigatórios
+ * - Validação de tipos de dados
+ * - Proteção contra modificação de campos sensíveis
+ * 
+ * DEPLOY:
+ * firebase deploy --only firestore:rules
+ * 
+ * ============================================================================
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ========================================================================
+    // FUNÇÕES AUXILIARES
+    // ========================================================================
+    
+    /**
+     * Verifica se o usuário está autenticado
+     */
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    /**
+     * Obtém o tenantId do usuário autenticado
+     * (Por enquanto usa o UID, mas deve ser obtido do custom claim)
+     */
+    function getTenantId() {
+      return request.auth.uid;
+      // TODO: Usar custom claim quando implementar multi-tenant real
+      // return request.auth.token.tenantId;
+    }
+    
+    /**
+     * Verifica se o documento pertence ao tenant do usuário
+     */
+    function belongsToTenant(docData) {
+      return docData.tenantId == getTenantId();
+    }
+    
+    /**
+     * Verifica se o usuário é admin
+     */
+    function isAdmin() {
+      return request.auth.token.role == 'admin';
+    }
+    
+    /**
+     * Verifica se campos sensíveis não foram modificados
+     */
+    function noSensitiveChanges(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+    
+    // ========================================================================
+    // CLIENTES
+    // ========================================================================
+    
+    match /clientes/{clienteId} {
+      // Leitura: permitida se pertence ao tenant
+      allow read: if isAuthenticated() && belongsToTenant(resource.data);
+      
+      // Criação: permitida se autenticado e com tenantId correto
+      allow create: if isAuthenticated()
+        && request.resource.data.tenantId == getTenantId()
+        && request.resource.data.keys().hasAll(['nome', 'cnpj', 'email', 'telefone', 'cidade', 'estado', 'status'])
+        && request.resource.data.cnpj is string
+        && request.resource.data.cnpj.size() == 14
+        && request.resource.data.email is string
+        && request.resource.data.email.matches('.*@.*\\..*');
+      
+      // Atualização: permitida se pertence ao tenant e não modifica campos sensíveis
+      allow update: if isAuthenticated()
+        && belongsToTenant(resource.data)
+        && noSensitiveChanges(['id', 'tenantId', 'createdAt']);
+      
+      // Exclusão: apenas admin
+      allow delete: if isAuthenticated() && isAdmin() && belongsToTenant(resource.data);
+    }
+    
+    // ========================================================================
+    // ORÇAMENTOS
+    // ========================================================================
+    
+    match /orcamentos/{orcamentoId} {
+      // Leitura: permitida se pertence ao tenant
+      allow read: if isAuthenticated() && belongsToTenant(resource.data);
+      
+      // Criação: permitida se autenticado e com tenantId correto
+      allow create: if isAuthenticated()
+        && request.resource.data.tenantId == getTenantId()
+        && request.resource.data.keys().hasAll(['clienteId', 'clienteNome', 'status', 'itens'])
+        && request.resource.data.itens.size() <= 200
+        && request.resource.data.status in ['Rascunho', 'Enviado'];
+      
+      // Atualização: permitida se pertence ao tenant
+      allow update: if isAuthenticated()
+        && belongsToTenant(resource.data)
+        && noSensitiveChanges(['id', 'tenantId', 'createdAt'])
+        && request.resource.data.itens.size() <= 200;
+      
+      // Exclusão: apenas rascunhos podem ser deletados
+      allow delete: if isAuthenticated()
+        && isAdmin()
+        && belongsToTenant(resource.data)
+        && resource.data.status == 'Rascunho';
+    }
+    
+    // ========================================================================
+    // ORDENS DE PRODUÇÃO
+    // ========================================================================
+    
+    match /ordens_producao/{ordemId} {
+      // Leitura: permitida se pertence ao tenant
+      allow read: if isAuthenticated() && belongsToTenant(resource.data);
+      
+      // Criação: permitida se autenticado e com tenantId correto
+      allow create: if isAuthenticated()
+        && request.resource.data.tenantId == getTenantId()
+        && request.resource.data.keys().hasAll(['clienteId', 'clienteNome', 'status', 'itens'])
+        && request.resource.data.status in ['Pendente'];
+      
+      // Atualização: permitida se pertence ao tenant
+      allow update: if isAuthenticated()
+        && belongsToTenant(resource.data)
+        && noSensitiveChanges(['id', 'tenantId', 'createdAt', 'orcamentoId']);
+      
+      // Exclusão: apenas admin e ordens não iniciadas
+      allow delete: if isAuthenticated()
+        && isAdmin()
+        && belongsToTenant(resource.data)
+        && resource.data.status == 'Pendente';
+    }
+    
+    // ========================================================================
+    // SOLICITAÇÕES DE COMPRA
+    // ========================================================================
+    
+    match /solicitacoes_compra/{solicitacaoId} {
+      // Leitura: permitida se pertence ao tenant
+      allow read: if isAuthenticated() && belongsToTenant(resource.data);
+      
+      // Criação: permitida se autenticado e com tenantId correto
+      allow create: if isAuthenticated()
+        && request.resource.data.tenantId == getTenantId()
+        && request.resource.data.keys().hasAll(['status', 'itens', 'total']);
+      
+      // Atualização: permitida se pertence ao tenant
+      allow update: if isAuthenticated()
+        && belongsToTenant(resource.data)
+        && noSensitiveChanges(['id', 'tenantId', 'createdAt']);
+      
+      // Exclusão: apenas admin
+      allow delete: if isAuthenticated() && isAdmin() && belongsToTenant(resource.data);
+    }
+    
+    // ========================================================================
+    // MATERIAIS (CATÁLOGO)
+    // ========================================================================
+    
+    match /materiais/{materialId} {
+      // Leitura: permitida se pertence ao tenant
+      allow read: if isAuthenticated() && belongsToTenant(resource.data);
+      
+      // Criação/Atualização: apenas admin
+      allow write: if isAuthenticated() && isAdmin() && request.resource.data.tenantId == getTenantId();
+    }
+    
+    // ========================================================================
+    // ESTOQUE DE MATERIAIS
+    // ========================================================================
+    
+    match /estoque_materiais/{estoqueId} {
+      // Leitura: permitida se pertence ao tenant
+      allow read: if isAuthenticated() && belongsToTenant(resource.data);
+      
+      // Escrita: permitida se pertence ao tenant (movimentações)
+      allow write: if isAuthenticated()
+        && request.resource.data.tenantId == getTenantId();
+    }
+    
+    // ========================================================================
+    // MOVIMENTAÇÕES DE ESTOQUE
+    // ========================================================================
+    
+    match /movimentacoes_estoque/{movimentacaoId} {
+      // Leitura: permitida se pertence ao tenant
+      allow read: if isAuthenticated() && belongsToTenant(resource.data);
+      
+      // Criação: permitida (auditoria)
+      allow create: if isAuthenticated() && request.resource.data.tenantId == getTenantId();
+      
+      // Atualização/Exclusão: negada (auditoria imutável)
+      allow update, delete: if false;
+    }
+    
+    // ========================================================================
+    // APONTAMENTOS DE PRODUÇÃO
+    // ========================================================================
+    
+    match /apontamentos/{apontamentoId} {
+      // Leitura: permitida se pertence ao tenant
+      allow read: if isAuthenticated() && belongsToTenant(resource.data);
+      
+      // Criação: permitida
+      allow create: if isAuthenticated() && request.resource.data.tenantId == getTenantId();
+      
+      // Atualização: permitida
+      allow update: if isAuthenticated() && belongsToTenant(resource.data);
+      
+      // Exclusão: apenas admin
+      allow delete: if isAuthenticated() && isAdmin() && belongsToTenant(resource.data);
+    }
+    
+    // ========================================================================
+    // AUDITORIA / LOGS
+    // ========================================================================
+    
+    match /auditoria/{auditId} {
+      // Leitura: apenas admin
+      allow read: if isAuthenticated() && isAdmin() && belongsToTenant(resource.data);
+      
+      // Criação: permitida (sistema gera logs)
+      allow create: if isAuthenticated() && request.resource.data.tenantId == getTenantId();
+      
+      // Atualização/Exclusão: negada (imutável)
+      allow update, delete: if false;
+    }
+    
+    match /logs/{logId} {
+      // Mesmas regras da auditoria
+      allow read: if isAuthenticated() && isAdmin() && belongsToTenant(resource.data);
+      allow create: if isAuthenticated() && request.resource.data.tenantId == getTenantId();
+      allow update, delete: if false;
+    }
+    
+    // ========================================================================
+    // EMPRESAS (TENANTS) - Apenas leitura do próprio tenant
+    // ========================================================================
+    
+    match /empresas/{empresaId} {
+      // Leitura: apenas da própria empresa
+      allow read: if isAuthenticated() && empresaId == getTenantId();
+      
+      // Escrita: negada (gerenciamento via admin console)
+      allow write: if false;
+    }
+    
+    // ========================================================================
+    // USUÁRIOS - Apenas leitura do próprio tenant
+    // ========================================================================
+    
+    match /usuarios/{userId} {
+      // Leitura: apenas do próprio tenant
+      allow read: if isAuthenticated() && belongsToTenant(resource.data);
+      
+      // Escrita: apenas admin
+      allow write: if isAuthenticated() && isAdmin() && request.resource.data.tenantId == getTenantId();
+    }
+    
+    // ========================================================================
+    // REGRA PADRÃO - NEGAR TUDO
+    // ========================================================================
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
