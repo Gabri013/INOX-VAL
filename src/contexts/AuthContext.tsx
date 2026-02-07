@@ -34,7 +34,7 @@ import { defaultPermissionsByRole, type PermissionsMap } from '@/domains/usuario
 
 interface AuthContextData {
   user: User | null;
-  profile: any | null;
+  profile: UserProfile | null;
   loading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -45,6 +45,21 @@ interface AuthContextData {
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+
+interface UserProfile {
+  id: string;
+  empresaId?: string;
+  email?: string;
+  nome?: string;
+  role?: string;
+  ativo?: boolean;
+  permissoesCustomizadas?: PermissionsMap;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+  createdBy?: string;
+  updatedBy?: string;
+  isDeleted?: boolean;
+}
 
 export function useAuth() {
   const context = useContext(AuthContext);
@@ -60,7 +75,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const defaultEmpresaId = import.meta.env.VITE_DEFAULT_EMPRESA_ID || 'default';
   const pendingApprovalPath = '/aguardando-liberacao';
@@ -274,13 +289,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(result.user);
       setProfile(userSnap.data());
       toast.success('Login realizado com sucesso!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao fazer login:', error);
+
+      const err = error as { code?: string; message?: string };
       
       // Mensagens de erro amigáveis
       let errorMessage = 'Erro ao fazer login';
       
-      switch (error.code) {
+      switch (err.code) {
         case 'auth/user-not-found':
           errorMessage = 'Usuário não encontrado';
           break;
@@ -300,7 +317,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           errorMessage = 'Muitas tentativas. Tente novamente mais tarde';
           break;
         default:
-          errorMessage = error.message || 'Erro ao fazer login';
+          errorMessage = err.message || 'Erro ao fazer login';
       }
       
       toast.error(errorMessage);
@@ -362,12 +379,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setProfile(null);
       window.location.assign(pendingApprovalPath);
       toast.success('Conta criada. Aguarde liberação do administrador.');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao criar conta:', error);
       
       let errorMessage = 'Erro ao criar conta';
       
-      switch (error.code) {
+      const err = error as { code?: string; message?: string };
+
+      switch (err.code) {
         case 'auth/email-already-in-use':
           errorMessage = 'Email já cadastrado';
           break;
@@ -381,7 +400,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           errorMessage = 'Cadastro não permitido';
           break;
         default:
-          errorMessage = error.message || 'Erro ao criar conta';
+          errorMessage = err.message || 'Erro ao criar conta';
       }
       
       toast.error(errorMessage);
@@ -418,7 +437,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setProfile(null);
       setEmpresaContext(null);
       toast.success('Logout realizado com sucesso');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao fazer logout:', error);
       toast.error('Erro ao fazer logout');
       throw error;
@@ -445,12 +464,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       await sendPasswordResetEmail(auth, email);
       toast.success('Email de recuperação enviado!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao enviar email de recuperação:', error);
       
       let errorMessage = 'Erro ao enviar email';
       
-      switch (error.code) {
+      const err = error as { code?: string; message?: string };
+
+      switch (err.code) {
         case 'auth/user-not-found':
           errorMessage = 'Usuário não encontrado';
           break;
@@ -458,7 +479,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           errorMessage = 'Email inválido';
           break;
         default:
-          errorMessage = error.message || 'Erro ao enviar email';
+          errorMessage = err.message || 'Erro ao enviar email';
       }
       
       toast.error(errorMessage);

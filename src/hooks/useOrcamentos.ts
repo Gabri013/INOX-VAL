@@ -18,6 +18,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import type { WhereFilterOp } from 'firebase/firestore';
 import { orcamentosService } from '@/services/firestore/orcamentos.service';
 import { httpClient, type PaginatedResponse } from '@/services/http/client';
 import type { Orcamento, StatusOrcamento } from '@/app/types/workflow';
@@ -41,11 +42,18 @@ export function useOrcamentos(options: UseOrcamentosOptions = {}) {
 
   // Carregar orçamentos
   const normalizeOrcamento = (orcamento: Orcamento): Orcamento => {
-    const toDate = (value: any) => {
+    const toDate = (value: unknown) => {
       if (!value) return value;
       if (value instanceof Date) return value;
       if (typeof value === 'string') return new Date(value);
-      if (value?.toDate) return value.toDate();
+      if (
+        typeof value === 'object' &&
+        value !== null &&
+        'toDate' in value &&
+        typeof (value as { toDate?: unknown }).toDate === 'function'
+      ) {
+        return (value as { toDate: () => unknown }).toDate();
+      }
       return value;
     };
 
@@ -63,7 +71,7 @@ export function useOrcamentos(options: UseOrcamentosOptions = {}) {
       setLoading(true);
       setError(null);
 
-      const where = [] as { field: string; operator: any; value: any }[];
+      const where = [] as { field: string; operator: WhereFilterOp; value: unknown }[];
       if (clienteId) where.push({ field: 'clienteId', operator: '==', value: clienteId });
       if (status) where.push({ field: 'status', operator: '==', value: status });
 

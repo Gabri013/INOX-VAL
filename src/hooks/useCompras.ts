@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { WhereFilterOp } from 'firebase/firestore';
 import { comprasService } from '@/services/firestore/compras.service';
 import { estoqueService } from '@/domains/estoque';
 import type { SolicitacaoCompra, StatusCompra, ItemMaterial } from '@/app/types/workflow';
@@ -19,11 +20,18 @@ export function useCompras(options: UseComprasOptions = {}) {
   const [error, setError] = useState<string | null>(null);
 
   const normalizeCompra = (compra: SolicitacaoCompra): SolicitacaoCompra => {
-    const toDate = (value: any) => {
+    const toDate = (value: unknown) => {
       if (!value) return value;
       if (value instanceof Date) return value;
       if (typeof value === 'string') return new Date(value);
-      if (value?.toDate) return value.toDate();
+      if (
+        typeof value === 'object' &&
+        value !== null &&
+        'toDate' in value &&
+        typeof (value as { toDate?: unknown }).toDate === 'function'
+      ) {
+        return (value as { toDate: () => unknown }).toDate();
+      }
       return value;
     };
 
@@ -38,7 +46,7 @@ export function useCompras(options: UseComprasOptions = {}) {
       setLoading(true);
       setError(null);
 
-      const where = [] as { field: string; operator: any; value: any }[];
+      const where = [] as { field: string; operator: WhereFilterOp; value: unknown }[];
       if (status) where.push({ field: 'status', operator: '==', value: status });
 
       const listResult = await comprasService.list({

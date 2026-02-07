@@ -17,5 +17,9 @@ serviceAccountKey.json
 .vite
 .turbo
 
+# Codex/Code agent artifacts
+.code/agents/
+.code/working/
+
 # OS files
 .DS_Store

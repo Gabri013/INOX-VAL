@@ -21,6 +21,15 @@ import type {
   StatusProducaoItem,
 } from '../producao.types';
 
+/**
+ * Service do domínio de Produção.
+ *
+ * Restrições (ver `CONTEXT.md`):
+ * - Produção é operacional e estável: não alterar fluxo de negócio.
+ * - Multi-tenant é obrigatório: toda query/read/write deve ser escopada por `empresaId`.
+ * - Não modificar `firestore.rules`.
+ */
+
 export type MovimentacaoInput = {
   setorOrigem: SetorProducao | null;
   setorDestino: SetorProducao;
@@ -186,7 +195,7 @@ class ProducaoItensService {
     });
   }
 
-  async registrarMovimentacao(orderId: string, itemId: string, dadosMov: Partial<MovimentacaoInput>): Promise<void> {
+  async registrarMovimentacao(orderId: string, itemId: string, movimento: Partial<MovimentacaoInput>): Promise<void> {
     const itemRef = doc(db, 'ordens_producao', orderId, 'itens', itemId);
     const itemSnap = await getDoc(itemRef);
     if (!itemSnap.exists()) throw new Error('Item não encontrado');
@@ -201,14 +210,14 @@ class ProducaoItensService {
       empresaId,
       orderId,
       ordemItemId: itemId,
-      setorOrigem: dadosMov.setorOrigem ?? ((item.setorAtual as SetorProducao | null) ?? null),
+      setorOrigem: movimento.setorOrigem ?? ((item.setorAtual as SetorProducao | null) ?? null),
       setorDestino:
-        dadosMov.setorDestino ?? ((item.setorAtual as SetorProducao | null) ?? ('Corte' as SetorProducao)),
-      operadorId: dadosMov.operadorId ?? userId,
-      operadorNome: dadosMov.operadorNome ?? 'Operador',
-      dataHora: dadosMov.dataHora ?? new Date().toISOString(),
-      observacoes: dadosMov.observacoes,
-      fotos: dadosMov.fotos,
+        movimento.setorDestino ?? ((item.setorAtual as SetorProducao | null) ?? ('Corte' as SetorProducao)),
+      operadorId: movimento.operadorId ?? userId,
+      operadorNome: movimento.operadorNome ?? 'Operador',
+      dataHora: movimento.dataHora ?? new Date().toISOString(),
+      observacoes: movimento.observacoes,
+      fotos: movimento.fotos,
       createdAt: serverTimestamp(),
       createdBy: userId,
       updatedAt: serverTimestamp(),

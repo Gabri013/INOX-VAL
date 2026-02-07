@@ -1,6 +1,10 @@
 /**
  * Hooks React Query para Produção
  * Fonte oficial: itens em subcoleções via collectionGroup('itens')
+ *
+ * Restrições (ver `CONTEXT.md`):
+ * - Não alterar comportamento de cache/invalidation sem aprovação.
+ * - Multi-tenant é obrigatório: hooks devem obter `empresaId` e repassar ao service.
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -84,4 +88,3 @@ export function useAtualizarStatus() {
     },
   });
 }
-

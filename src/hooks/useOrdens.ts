@@ -18,6 +18,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import type { WhereFilterOp } from 'firebase/firestore';
 import { ordensService } from '@/services/firestore/ordens.service';
 import { orcamentosService } from '@/services/firestore/orcamentos.service';
 import { estoqueItensService } from '@/services/firestore/estoque.service';
@@ -43,11 +44,18 @@ export function useOrdens(options: UseOrdensOptions = {}) {
 
   // Carregar ordens
   const normalizeOrdem = (ordem: OrdemProducao): OrdemProducao => {
-    const toDate = (value: any) => {
+    const toDate = (value: unknown) => {
       if (!value) return value;
       if (value instanceof Date) return value;
       if (typeof value === 'string') return new Date(value);
-      if (value?.toDate) return value.toDate();
+      if (
+        typeof value === 'object' &&
+        value !== null &&
+        'toDate' in value &&
+        typeof (value as { toDate?: unknown }).toDate === 'function'
+      ) {
+        return (value as { toDate: () => unknown }).toDate();
+      }
       return value;
     };
 
@@ -66,7 +74,7 @@ export function useOrdens(options: UseOrdensOptions = {}) {
       setLoading(true);
       setError(null);
 
-      const where = [] as { field: string; operator: any; value: any }[];
+      const where = [] as { field: string; operator: WhereFilterOp; value: unknown }[];
       if (clienteId) where.push({ field: 'clienteId', operator: '==', value: clienteId });
       if (status) where.push({ field: 'status', operator: '==', value: status });
 

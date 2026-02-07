@@ -17,7 +17,7 @@ import {
   type WhereFilterOp,
   type OrderByDirection,
 } from "firebase/firestore";
-import { getFirestore, getEmpresaContext } from "@/lib/firebase";
+import { getFirestore, getEmpresaContext, getFirebaseAuth } from "@/lib/firebase";
 import { COLLECTIONS } from "@/types/firebase";
 
 export type AuditAction = "create" | "update" | "delete";
@@ -78,7 +78,7 @@ function diffObjects(before: Record<string, any> | null, after: Record<string, a
 }
 
 export async function getCurrentUserProfile() {
-  const auth = (await import("@/lib/firebase")).getFirebaseAuth();
+  const auth = getFirebaseAuth();
   const user = auth.currentUser;
   if (!user) return null;
   const primaryRef = doc(db, COLLECTIONS.users, user.uid);
@@ -105,7 +105,7 @@ export async function getEmpresaId(): Promise<string> {
 }
 
 export async function getCurrentUserId(): Promise<string> {
-  const auth = (await import("@/lib/firebase")).getFirebaseAuth();
+  const auth = getFirebaseAuth();
   const user = auth.currentUser;
   if (!user) throw new Error("Usuário não autenticado.");
   return user.uid;
