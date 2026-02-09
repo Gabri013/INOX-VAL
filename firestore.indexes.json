@@ -24,7 +24,8 @@
       "fields": [
         { "fieldPath": "empresaId", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "dataAbertura", "order": "DESCENDING" }
+        { "fieldPath": "dataAbertura", "order": "DESCENDING" },
+        { "fieldPath": "__name__", "order": "DESCENDING" }
       ]
     },
     {
@@ -33,7 +34,18 @@
       "fields": [
         { "fieldPath": "empresaId", "order": "ASCENDING" },
         { "fieldPath": "clienteId", "order": "ASCENDING" },
-        { "fieldPath": "dataAbertura", "order": "DESCENDING" }
+        { "fieldPath": "dataAbertura", "order": "DESCENDING" },
+        { "fieldPath": "__name__", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "ordens_producao",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "empresaId", "order": "ASCENDING" },
+        { "fieldPath": "isDeleted", "order": "ASCENDING" },
+        { "fieldPath": "dataAbertura", "order": "DESCENDING" },
+        { "fieldPath": "__name__", "order": "DESCENDING" }
       ]
     },
     {
@@ -42,7 +54,8 @@
       "fields": [
         { "fieldPath": "empresaId", "order": "ASCENDING" },
         { "fieldPath": "setorAtual", "order": "ASCENDING" },
-        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+        { "fieldPath": "updatedAt", "order": "DESCENDING" },
+        { "fieldPath": "__name__", "order": "DESCENDING" }
       ]
     },
     {

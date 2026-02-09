@@ -1,5 +1,5 @@
 // Auto-generated runtime for planilha engine.
-import type { CellEntry, ComputeOverrides, ComputeResult, WorkbookData } from './types';
+import type { CellEntry, ComputeOverrides, ComputeResult, WorkbookData } from './types.ts';
 
 type Token = { type: string; value?: string };
 type ExprNode =
@@ -10,6 +10,8 @@ type ExprNode =
   | { type: 'binary'; op: string; left: ExprNode; right: ExprNode }
   | { type: 'call'; name: string; args: ExprNode[] };
 
+type ErrorValue = { __error: true; value: any };
+
 const fnAliases: Record<string, string> = {
   SOMA: 'SUM',
   SE: 'IF',
@@ -19,16 +21,34 @@ const fnAliases: Record<string, string> = {
 };
 
 function toNumber(value: any): number {
+  if (isErrorValue(value)) return Number.NaN;
   if (typeof value === 'number') return value;
   if (typeof value === 'boolean') return value ? 1 : 0;
   if (value == null) return 0;
+  if (typeof value === 'string') {
+    const raw = value;
+    if (raw.length === 0) return 0;
+    const trimmed = raw.trim();
+    if (trimmed.length === 0) return Number.NaN;
+    const parsed = Number(trimmed.replace(',', '.'));
+    return Number.isFinite(parsed) ? parsed : Number.NaN;
+  }
   const parsed = Number(String(value).replace(',', '.'));
-  return Number.isFinite(parsed) ? parsed : 0;
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
+function isErrorValue(value: any): value is ErrorValue {
+  return !!value && typeof value === 'object' && value.__error === true;
+}
+
+function asError(value: any): ErrorValue {
+  return { __error: true, value };
 }
 
 function applyOverrides(cells: Record<string, CellEntry>, overrides: ComputeOverrides) {
   Object.entries(overrides).forEach(([cell, value]) => {
-    cells[cell] = { value };
+    const normalized = normalizeAddress(cell);
+    cells[normalized] = { value };
   });
 }
 
@@ -169,17 +189,22 @@ function parseFormula(formula: string): ExprNode {
       consume();
       return expr;
     }
-    if (token.type === 'op' && token.value === '-') {
+    if (token.type === '-' || (token.type === 'op' && token.value === '-')) {
       return { type: 'unary', op: '-', value: parsePrimary() };
+    }
+    if (token.type === '+' || (token.type === 'op' && token.value === '+')) {
+      return { type: 'unary', op: '+', value: parsePrimary() };
     }
     if (token.type === 'identifier') {
       const next = peek();
       const id = token.value || '';
+      const normalizedId = normalizeAddress(id);
       if (next && next.type === '!') {
         consume();
         const refToken = consume();
         if (refToken?.type === 'identifier') {
-          return { type: 'ref', sheet: id, address: refToken.value || '' };
+          const refAddress = normalizeAddress(refToken.value || '');
+          return { type: 'ref', sheet: id, address: refAddress };
         }
       }
       if (next && next.type === '(') {
@@ -193,15 +218,16 @@ function parseFormula(formula: string): ExprNode {
         const name = fnAliases[id.toUpperCase()] || id.toUpperCase();
         return { type: 'call', name, args };
       }
-      if (/^\$?[A-Za-z]{1,3}\$?\d+$/.test(id)) {
+      if (/^[A-Za-z]{1,3}\d+$/.test(normalizedId)) {
         if (peek() && peek().type === ':') {
           consume();
           const end = consume();
           if (end?.type === 'identifier') {
-            return { type: 'range', start: id, end: end.value || '' };
+            const normalizedEnd = normalizeAddress(end.value || '');
+            return { type: 'range', start: normalizedId, end: normalizedEnd };
           }
         }
-        return { type: 'ref', address: id };
+        return { type: 'ref', address: normalizedId };
       }
       if (id.toUpperCase() === 'TRUE') return { type: 'literal', value: true };
       if (id.toUpperCase() === 'FALSE') return { type: 'literal', value: false };
@@ -265,15 +291,21 @@ function evalNode(
       return node.value;
     case 'ref': {
       const targetSheet = node.sheet || sheetName;
-      const key = targetSheet + "!" + node.address;
+      const normalizedAddress = normalizeAddress(node.address);
+      const key = targetSheet + "!" + normalizedAddress;
       if (cache[key] !== undefined) return cache[key];
       if (stack.includes(key)) return null;
       stack.push(key);
       const sheet = workbook[targetSheet] || {};
-      const cell = sheet[node.address];
+      const cell = sheet[normalizedAddress];
       let value: any = cell?.value ?? null;
       if (cell?.formula) {
-        value = evalNode(parseFormula(cell.formula), targetSheet, workbook, cache, stack);
+        const computed = evalNode(parseFormula(cell.formula), targetSheet, workbook, cache, stack);
+        if (computed === null || (typeof computed === 'number' && Number.isNaN(computed)) || isErrorValue(computed)) {
+          value = asError(cell?.value ?? null);
+        } else {
+          value = computed;
+        }
       }
       cache[key] = value;
       stack.pop();
@@ -285,12 +317,24 @@ function evalNode(
         evalNode({ type: 'ref', sheet: targetSheet, address }, targetSheet, workbook, cache, stack)
       );
     }
-    case 'unary':
-      if (node.op === '-') return -toNumber(evalNode(node.value, sheetName, workbook, cache, stack));
-      return evalNode(node.value, sheetName, workbook, cache, stack);
+    case 'unary': {
+      const unaryValue = evalNode(node.value, sheetName, workbook, cache, stack);
+      const num = toNumber(unaryValue);
+      if (Number.isNaN(num)) return Number.NaN;
+      if (node.op === '-') return -num;
+      if (node.op === '+') return num;
+      return unaryValue;
+    }
     case 'binary': {
       const left = evalNode(node.left, sheetName, workbook, cache, stack);
       const right = evalNode(node.right, sheetName, workbook, cache, stack);
+      const useNumericCompare =
+        typeof left === 'number' ||
+        typeof right === 'number' ||
+        typeof left === 'boolean' ||
+        typeof right === 'boolean' ||
+        left == null ||
+        right == null;
       switch (node.op) {
         case '+':
           return toNumber(left) + toNumber(right);
@@ -303,8 +347,20 @@ function evalNode(
         case '^':
           return Math.pow(toNumber(left), toNumber(right));
         case '=':
+          if (useNumericCompare) {
+            const l = toNumber(left);
+            const r = toNumber(right);
+            if (Number.isNaN(l) || Number.isNaN(r)) return Number.NaN;
+            return l === r;
+          }
           return left === right;
         case '<>':
+          if (useNumericCompare) {
+            const l = toNumber(left);
+            const r = toNumber(right);
+            if (Number.isNaN(l) || Number.isNaN(r)) return Number.NaN;
+            return l !== r;
+          }
           return left !== right;
         case '>':
           return toNumber(left) > toNumber(right);
@@ -319,12 +375,12 @@ function evalNode(
       }
     }
     case 'call': {
-      const flatArgs = (values: any[]) => values.flatMap((arg: any) => (Array.isArray(arg) ? arg : [arg]));
+      const flatArgs = (values) => values.flatMap((arg) => (Array.isArray(arg) ? arg : [arg]));
       switch (node.name) {
         case 'SUM': {
           const args = node.args.map((arg) => evalNode(arg, sheetName, workbook, cache, stack));
           const flat = flatArgs(args);
-          return flat.reduce((acc: number, v: any) => acc + toNumber(v), 0);
+          return flat.reduce((acc, v) => acc + toNumber(v), 0);
         }
         case 'MIN': {
           const args = node.args.map((arg) => evalNode(arg, sheetName, workbook, cache, stack));
@@ -397,6 +453,10 @@ function findOutputs(resolved: Record<string, any>) {
   return outputs;
 }
 
+function normalizeAddress(address: string) {
+  return address.replace(/\$/g, '');
+}
+
 export function computeSheet(workbook: WorkbookData, sheetName: string, overrides: ComputeOverrides): ComputeResult {
   const sheet = workbook[sheetName];
   if (!sheet) {
@@ -409,7 +469,8 @@ export function computeSheet(workbook: WorkbookData, sheetName: string, override
   const cache: Record<string, any> = {};
   const resolved: Record<string, any> = {};
   Object.keys(cells).forEach((cell) => {
-    resolved[cell] = evalNode({ type: 'ref', address: cell }, sheetName, { ...workbook, [sheetName]: cells }, cache, []);
+    const computed = evalNode({ type: 'ref', address: cell }, sheetName, { ...workbook, [sheetName]: cells }, cache, []);
+    resolved[cell] = isErrorValue(computed) ? computed.value : computed;
   });
 
   return {

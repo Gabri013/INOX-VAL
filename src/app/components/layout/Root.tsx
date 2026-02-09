@@ -49,6 +49,7 @@ const navigation: Array<{ name: string; href: string; icon: any; module?: Module
   { name: "Compras", href: "/compras", icon: ShoppingCart, module: "compras" },
   { name: "Controle de Produção", href: "/controle-producao", icon: Factory, module: "producao" },
   { name: "Calculadora", href: "/calculadora", icon: Calculator, module: "calculadora", highlight: true },
+  { name: "Precificação", href: "/precificacao", icon: Calculator, module: "precificacao" },
   { name: "Chat", href: "/chat", icon: MessageCircle, module: "chat" },
   { name: "Anúncios", href: "/anuncios", icon: Megaphone, module: "anuncios" },
   { name: "Usuários", href: "/usuarios", icon: UserCog, module: "usuarios" },

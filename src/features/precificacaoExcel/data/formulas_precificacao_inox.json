@@ -1,0 +1,2112 @@
+[
+  {
+    "sheet": "Banc",
+    "cell": "D5",
+    "formula": "=((C5*2+A5)*B5+(C5*2*A5)+40000)"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "E5",
+    "formula": "=D5*E3*8/1000000"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "F5",
+    "formula": "=E5*F3*H5"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "B6",
+    "formula": "=A7+80+D7"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "C6",
+    "formula": "=SUM(B7+50+D7)"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "D6",
+    "formula": "=B6*C6*D3*8/1000000"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "E7",
+    "formula": "=D6*F3*G5"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "F7",
+    "formula": "=SUM(E7+F5)+AD11"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "G7",
+    "formula": "=F7+H6"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "M7",
+    "formula": "=E7+D12+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "N7",
+    "formula": "=F7+D12+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "O7",
+    "formula": "=G7+D12+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "B8",
+    "formula": "=A9+80+D9"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "C8",
+    "formula": "=B9+50+D9"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "D8",
+    "formula": "=B8*C8*D3*8/1000000"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "H8",
+    "formula": "=H6"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "A9",
+    "formula": "=A7"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "B9",
+    "formula": "=B7"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "D9",
+    "formula": "=D7"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "E9",
+    "formula": "=D8*F3*G5"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "F9",
+    "formula": "=F5*2+E9"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "G9",
+    "formula": "=F9+H8"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "M9",
+    "formula": "=E9+D12+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "N9",
+    "formula": "=F9+D12+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "O9",
+    "formula": "=G9+D12+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "C12",
+    "formula": "=G14*4"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "D12",
+    "formula": "=(C12*$F$14*2.5/1000)+(10.5*4)"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "C13",
+    "formula": "=G14*6"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "D13",
+    "formula": "=(C13*$F$14*2.5/1000)+(10.5*6)"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "M13",
+    "formula": "=E7+D13+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "N13",
+    "formula": "=F7+D13+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "O13",
+    "formula": "=G7+D13+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "C14",
+    "formula": "=G14*7"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "D14",
+    "formula": "=(C14*F14*2.5/1000)+(10.5*7)"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "M15",
+    "formula": "=E9+D13+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "N15",
+    "formula": "=F9+D13+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "O15",
+    "formula": "=G9+D13+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "B17",
+    "formula": "=C16+D16+D16"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "C17",
+    "formula": "=(B17*G16)/1000*2.5"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "M19",
+    "formula": "=E7+D14+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "N19",
+    "formula": "=F7+D14+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "O19",
+    "formula": "=G7+D14+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "M21",
+    "formula": "=E9+D14+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "N21",
+    "formula": "=F9+D14+C17"
+  },
+  {
+    "sheet": "Banc",
+    "cell": "O21",
+    "formula": "=G9+D14+C17"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "G13",
+    "formula": "=B17*A16*B9*8/1000+10"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "G14",
+    "formula": "=G22*G16*B9*8*2/1000"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "C17",
+    "formula": "=G13+G14"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "D17",
+    "formula": "=C9*C17*D9/1000"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "B25",
+    "formula": "=B17"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "C25",
+    "formula": "=C17+250"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "D25",
+    "formula": "=C25*C9*D9/1000"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "B33",
+    "formula": "=B17"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "C33",
+    "formula": "=G33+G34"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "D33",
+    "formula": "=C33*C9*D9/1000"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "G33",
+    "formula": "=B33*A32*B9*8/1000+10"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "F56",
+    "formula": "=B56+C56+D56+E56+G49*D48*C48*B48"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "C59",
+    "formula": "=B59*D59*B48*B18/1000"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "D59",
+    "formula": "=D56+50"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "E59",
+    "formula": "=E56+30"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "C61",
+    "formula": "=+B56/100"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "D62",
+    "formula": "=B56/1000"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "B63",
+    "formula": "=B56+C56+D56+E56*C48"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "A67",
+    "formula": "=B59=B6*C6*D3*8/1000000"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "C67",
+    "formula": "=(B56/1000)*(C56+D56+100+E56)"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "D74",
+    "formula": "=SUM(B74*C74)"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "D75",
+    "formula": "=SUM(B75*C75)"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "D76",
+    "formula": "=SUM(B76*C76)"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "D77",
+    "formula": "=SUM(B77*C77)"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "D78",
+    "formula": "=SUM(B78*C78)"
+  },
+  {
+    "sheet": "LAVATORIO ATUAL",
+    "cell": "D79",
+    "formula": "=SUM(B79*C79)"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "D7",
+    "formula": "=E3"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "E7",
+    "formula": "=B7*C7*D7*8/1000000"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "F7",
+    "formula": "=(300*400*D7*8/1000000)*2"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "G7",
+    "formula": "=SUM(E7:F7)"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "H7",
+    "formula": "=G7*H5*H3"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "I7",
+    "formula": "=H7/B7*1000"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "D9",
+    "formula": "=E3"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "E9",
+    "formula": "=B9*C9*D9*8/1000000"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "F9",
+    "formula": "=(500*400*D9*8/1000000)*2"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "G9",
+    "formula": "=SUM(E9:F9)"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "H9",
+    "formula": "=G9*H5*H3"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "I9",
+    "formula": "=H9/B9*1000"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "D11",
+    "formula": "=E3"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "E11",
+    "formula": "=B11*C11*D11*8/1000000"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "F11",
+    "formula": "=(380*330*D11*8/1000000)*2"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "G11",
+    "formula": "=SUM(E11:F11)"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "H11",
+    "formula": "=G11*H5*H3"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "I11",
+    "formula": "=H11/B11*1000"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "D13",
+    "formula": "=E3"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "E13",
+    "formula": "=B13*C13*D13*8/1000000"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "F13",
+    "formula": "=(600*300*D13*8/1000000)*2"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "G13",
+    "formula": "=SUM(E13:F13)"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "H13",
+    "formula": "=G13*H5*H3"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "I13",
+    "formula": "=H13/B13*1000"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "D15",
+    "formula": "=E3"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "E15",
+    "formula": "=B15*C15*D15*8/1000000"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "F15",
+    "formula": "=5.3*D15"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "G15",
+    "formula": "=SUM(E15:F15)"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "I15",
+    "formula": "=H15/B15*1000"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "E17",
+    "formula": "=B17*C17*D17*8/1000000"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "F17",
+    "formula": "=(700*550*D17*8/1000000)*2"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "G17",
+    "formula": "=SUM(E17:F17)"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "H17",
+    "formula": "=G17*H5*H3"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "I17",
+    "formula": "=H17/B17*1000"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "E19",
+    "formula": "=B19*C19*D19*8/1000000"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "F19",
+    "formula": "=6*D19"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "G19",
+    "formula": "=SUM(E19:F19)"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "H19",
+    "formula": "=G19*H5*H3"
+  },
+  {
+    "sheet": "MicLav",
+    "cell": "I19",
+    "formula": "=H19/B19*1000"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "I3",
+    "formula": "=$A$3"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "J3",
+    "formula": "=$B$3"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "O3",
+    "formula": "=$A$3"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "P3",
+    "formula": "=J3-40-30"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "Q3",
+    "formula": "=K3/2"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "I4",
+    "formula": "=((K3*2+I3)*J3+(K3*2*I3)+40000)"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "J4",
+    "formula": "=I4*L2*8/1000000"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "L4",
+    "formula": "=$J$4*$L$3*$K$4"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "O4",
+    "formula": "=((30+(Q3*2)+P3)*O3)"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "P4",
+    "formula": "=O4*R2*8/1000000"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "R4",
+    "formula": "=$P$4*$R$3*$Q$4"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "A5",
+    "formula": "=A3+96"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B5",
+    "formula": "=B3+96"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "C5",
+    "formula": "=A5*B5*C3*8/1000000"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "E5",
+    "formula": "=(C5*G3*3)"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "G5",
+    "formula": "=E5+C27"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "A8",
+    "formula": "=A3"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B8",
+    "formula": "=B3"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "C8",
+    "formula": "=C3"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "F8",
+    "formula": "=C9*E10*C8*8/1000000"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B9",
+    "formula": "=A8/(D8+E8)+1"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "C9",
+    "formula": "=B9*B8+(A8*2)"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "D9",
+    "formula": "=F8*G8*3.2"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B10",
+    "formula": "=B9*B8+(A8*3)"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "C10",
+    "formula": "=(B10*D8*C8*8/1000000)*G8*3.5"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "E10",
+    "formula": "=60+D8"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B11",
+    "formula": "=B9*B8+(A8*4)"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "C11",
+    "formula": "=(B11*D8*C8*8/1000000)*G8*3.5"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "F11",
+    "formula": "=D9+C28"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B12",
+    "formula": "=B9*B8+(A8*5)"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "C12",
+    "formula": "=(B12*D8*C8*8/1000000)*G8*3.5"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "I15",
+    "formula": "=E5+L4"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "L15",
+    "formula": "=E5+L4+R4"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B16",
+    "formula": "=A15/(C15+E15)+1"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "C16",
+    "formula": "=B16*B15+(A15*2)"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "D16",
+    "formula": "=(C16/1000)*F15*3"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B17",
+    "formula": "=B16*B15+(A15*3)"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "C17",
+    "formula": "=(B17/1000)*F15*4.5"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B18",
+    "formula": "=B16*B15+(A15*4)"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "C18",
+    "formula": "=(B18/1000)*F15*4.5"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B19",
+    "formula": "=B16*B15+(A15*5)"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "C19",
+    "formula": "=(B19/1000)*F15*4.5"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "G19",
+    "formula": "=D16+C29"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "A24",
+    "formula": "=A3"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B24",
+    "formula": "=B3"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "A25",
+    "formula": "=A8"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B25",
+    "formula": "=B8"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "A26",
+    "formula": "=A3"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B26",
+    "formula": "=B15"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "A27",
+    "formula": "=(A24+B24)*2"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B27",
+    "formula": "=A27*D24*C24*8/1000000"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "C27",
+    "formula": "=B27*G24*3"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "A28",
+    "formula": "=(A25+B25)*2"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B28",
+    "formula": "=A28*D25*C25*8/1000000"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "C28",
+    "formula": "=B28*G25*3"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "A29",
+    "formula": "=(A26+B26)*2"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "B29",
+    "formula": "=A29*D26*C26*8/1000000"
+  },
+  {
+    "sheet": " Grelha",
+    "cell": "C29",
+    "formula": "=B29*G26*3"
+  },
+  {
+    "sheet": "Prat",
+    "cell": "C4",
+    "formula": "=C2+96"
+  },
+  {
+    "sheet": "Prat",
+    "cell": "E4",
+    "formula": "=E2+96"
+  },
+  {
+    "sheet": "Prat",
+    "cell": "A6",
+    "formula": "=C4*E4*G4*8/1000000"
+  },
+  {
+    "sheet": "Prat",
+    "cell": "C6",
+    "formula": "=A6*H4*F6"
+  },
+  {
+    "sheet": "Prat",
+    "cell": "C12",
+    "formula": "=C2"
+  },
+  {
+    "sheet": "Prat",
+    "cell": "E12",
+    "formula": "=E2"
+  },
+  {
+    "sheet": "Prat",
+    "cell": "A14",
+    "formula": "=C12/100+1"
+  },
+  {
+    "sheet": "Prat",
+    "cell": "C14",
+    "formula": "=110*E12*G14*8/1000000*A14"
+  },
+  {
+    "sheet": "Prat",
+    "cell": "D14",
+    "formula": "=C14+C15"
+  },
+  {
+    "sheet": "Prat",
+    "cell": "C15",
+    "formula": "=110*C12*G14*8/1000000*A15"
+  },
+  {
+    "sheet": "Prat",
+    "cell": "C17",
+    "formula": "=D14*H14*3"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "G3",
+    "formula": "=G2*4"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "A4",
+    "formula": "=A3+110"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "C4",
+    "formula": "=C3+110"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "F4",
+    "formula": "=(G3*I4*2.5/1000)+(10.5*4)"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "A5",
+    "formula": "=A4*C4*D5*8/1000000"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "G5",
+    "formula": "=$G$2*5"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "I5",
+    "formula": "=$G$2*6"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "F6",
+    "formula": "=(G5*$I$4*2.5/1000)+(10.5*5)"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "H6",
+    "formula": "=(I5*$I$4*2.5/1000)+(10.5*5)"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "A7",
+    "formula": "=A5*E5*E7"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "A12",
+    "formula": "=A3"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "C12",
+    "formula": "=C3"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "D12",
+    "formula": "=A3"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "F12",
+    "formula": "=C3"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "G12",
+    "formula": "=A3"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "I12",
+    "formula": "=C3"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "J12",
+    "formula": "=A3"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "L12",
+    "formula": "=C3"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "A13",
+    "formula": "=A12"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "C13",
+    "formula": "=C12*2"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "D13",
+    "formula": "=D12+80"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "F13",
+    "formula": "=F12+80"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "G13",
+    "formula": "=G12/100+1"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "H13",
+    "formula": "=110*I12*G16*8/1000000*G13"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "I13",
+    "formula": "=H13+H14"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "J13",
+    "formula": "=D12+80"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "K13",
+    "formula": "=E13"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "L13",
+    "formula": "=F12+80"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "A14",
+    "formula": "=(A13+C13)/1000"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "D14",
+    "formula": "=D13*F13*D16*8/1000000"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "H14",
+    "formula": "=110*G12*G16*8/1000000*G14"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "J14",
+    "formula": "=D13*F13*J16*8/1000000"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "A17",
+    "formula": "=A14*B16*E7"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "D17",
+    "formula": "=D14*E16*E7"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "G17",
+    "formula": "=I13*H16*E7"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "J17",
+    "formula": "=J14*K16*E7"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "B20",
+    "formula": "=A7+F4+A17"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "E20",
+    "formula": "=$A$7+F4+$D$17"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "H20",
+    "formula": "=$A$7+F4+$G$17"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "J20",
+    "formula": "=D20"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "K20",
+    "formula": "=$A$7+F4+$J$17"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "B21",
+    "formula": "=$A$7+F6+$A$17"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "D21",
+    "formula": "=A21"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "E21",
+    "formula": "=$A$7+F6+$D$17"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "H21",
+    "formula": "=$A$7+F6+$G$17"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "J21",
+    "formula": "=D21"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "K21",
+    "formula": "=$A$7+F6+$J$17"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "B22",
+    "formula": "=$A$7+H6+$A$17"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "E22",
+    "formula": "=A7+H6+D17"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "H22",
+    "formula": "=A7+H6+G17"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "J22",
+    "formula": "=D22"
+  },
+  {
+    "sheet": "Mesas",
+    "cell": "K22",
+    "formula": "=A7+H6+J17"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "D3",
+    "formula": "=C3+250"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "D4",
+    "formula": "=C3+150"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "A7",
+    "formula": "=A3*D3*E3*8/1000000"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "C7",
+    "formula": "=A7*B7*F3*D7"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "E7",
+    "formula": "=SUM(C7:C9)"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "A8",
+    "formula": "=B3*D3*E3*8/1000000"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "C8",
+    "formula": "=A8*B8*F3*D7"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "A9",
+    "formula": "=(A3-600)*(B3-500)*E3*8/1000000"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "C9",
+    "formula": "=A9*B9*F3*D7"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "A13",
+    "formula": "=A3*D3*E3*8/1000000"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "C13",
+    "formula": "=A13*B13*F3*D13"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "E13",
+    "formula": "=SUM(C13:C16)"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "A14",
+    "formula": "=B3*D3*E3*8/1000000"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "C14",
+    "formula": "=A14*B14*F3*D13"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "A15",
+    "formula": "=B3*D4*E3*8/1000000"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "C15",
+    "formula": "=A15*B15*F3*D13"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "A16",
+    "formula": "=(A3-600)*(B3-500)*E3*8/1000000"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "C16",
+    "formula": "=A16*B16*F3*D13"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "A20",
+    "formula": "=B18*3.142+57.4"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "C20",
+    "formula": "=A20*B20*C18*8/1000000"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "D20",
+    "formula": "=C20*D18*E20"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "A23",
+    "formula": "=B22*3.142+57.4"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "C23",
+    "formula": "=A23*B23*C22*8/1000000"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "D23",
+    "formula": "=C23*D22*E23"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "C26",
+    "formula": "=A26*B26*C25*8/1000000"
+  },
+  {
+    "sheet": "Coifa",
+    "cell": "D26",
+    "formula": "=C26*D25*E26"
+  },
+  {
+    "sheet": "Chapa-Mat Ø",
+    "cell": "A5",
+    "formula": "=A3*C3*D3/1000000*8"
+  },
+  {
+    "sheet": "Chapa-Mat Ø",
+    "cell": "D5",
+    "formula": "=A5*E3*C5"
+  },
+  {
+    "sheet": "Chapa-Mat Ø",
+    "cell": "A11",
+    "formula": "=SUM(A10*C10)/1000"
+  },
+  {
+    "sheet": "Chapa-Mat Ø",
+    "cell": "B11",
+    "formula": "=SUM(A11*E10)/1000"
+  },
+  {
+    "sheet": "Chapa-Mat Ø",
+    "cell": "C11",
+    "formula": "=SUM(B11*F10)*8/1000"
+  },
+  {
+    "sheet": "Chapa-Mat Ø",
+    "cell": "D11",
+    "formula": "=SUM(C11*G10)"
+  },
+  {
+    "sheet": "Chapa-Mat Ø",
+    "cell": "F11",
+    "formula": "=SUM(D11:D12)"
+  },
+  {
+    "sheet": "Chapa-Mat Ø",
+    "cell": "A12",
+    "formula": "=SUM(C10)+96"
+  },
+  {
+    "sheet": "Chapa-Mat Ø",
+    "cell": "B12",
+    "formula": "=SUM(A12*A12)/1000"
+  },
+  {
+    "sheet": "Chapa-Mat Ø",
+    "cell": "C12",
+    "formula": "=SUM(B12*F10)*8/1000"
+  },
+  {
+    "sheet": "Chapa-Mat Ø",
+    "cell": "D12",
+    "formula": "=SUM(C12*G10)"
+  },
+  {
+    "sheet": "Chapa-Mat Ø",
+    "cell": "F12",
+    "formula": "=SUM(F11)*3.5"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "B4",
+    "formula": "=B3+96"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "C4",
+    "formula": "=C3+96"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "D4",
+    "formula": "=B4*C4*F3*8/1000000"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "E4",
+    "formula": "=(D4*G3*G6)"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "D5",
+    "formula": "=D3*C6/1000"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "E5",
+    "formula": "=((D5*F5*G3*2.5))"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "E9",
+    "formula": "=(E4*C5)+E5"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "I9",
+    "formula": "=E9/G3*I3"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "E12",
+    "formula": "=(E4*C5)/100*110+E5"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "I12",
+    "formula": "=I9/100*110"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "A15",
+    "formula": "=B3/100+1"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "B15",
+    "formula": "=110*C3*F3*8/1000000*A15"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "C15",
+    "formula": "=B15+B16"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "E15",
+    "formula": "=D17+E5"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "I15",
+    "formula": "=E15/G3*I3"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "B16",
+    "formula": "=110*B3*F3*8/1000000*A16"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "C17",
+    "formula": "=C15*G3*3"
+  },
+  {
+    "sheet": "EstCarroCantoeira",
+    "cell": "D17",
+    "formula": "=C17*C5"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "B5",
+    "formula": "=B4+100"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "D5",
+    "formula": "=D4+100"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "E5",
+    "formula": "=B5*D5*H6*8/1000000"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "G5",
+    "formula": "=E5*I6*3.5"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "F6",
+    "formula": "=E6*G5"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "C8",
+    "formula": "=F4*A9"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "E8",
+    "formula": "=C8*H9*3/1000"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "E10",
+    "formula": "=E8+F6"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "A13",
+    "formula": "=B4/100+1"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "B13",
+    "formula": "=110*D4*H6*8/1000000*A13"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "D13",
+    "formula": "=B13+B14"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "B14",
+    "formula": "=110*B4*H6*8/1000000*A14"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "C15",
+    "formula": "=D13*I6*3"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "F15",
+    "formula": "=C15*E6"
+  },
+  {
+    "sheet": "EstCarroTubo",
+    "cell": "G15",
+    "formula": "=F15+E8"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "Q4",
+    "formula": "=SUM(O5:O9)"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D5",
+    "formula": "=E2"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F5",
+    "formula": "=E5*D5/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "H5",
+    "formula": "=SUM(F5:F12)"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "M5",
+    "formula": "=N2"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "O5",
+    "formula": "=M5*N5/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "S5",
+    "formula": "=Q4*Q5"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D6",
+    "formula": "=E2*B6"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F6",
+    "formula": "=E6*D6/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "L6",
+    "formula": "=L5"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "O6",
+    "formula": "=N6*M6"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "R6",
+    "formula": "=S5/100*Q6"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "S6",
+    "formula": "=R6+S5"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D7",
+    "formula": "=G2*B7"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F7",
+    "formula": "=E7*D7/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "J7",
+    "formula": "=H5*H7"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "O7",
+    "formula": "=N7*M7"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D8",
+    "formula": "=G2*B8"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F8",
+    "formula": "=E8*D8/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "O8",
+    "formula": "=N8*M8"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "R8",
+    "formula": "=S6/N2*1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "C9",
+    "formula": "=C5"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D9",
+    "formula": "=B9"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F9",
+    "formula": "=E9*D9"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "I9",
+    "formula": "=J7/100*H9"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "J9",
+    "formula": "=I9+J7"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "O9",
+    "formula": "=N9*M9"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D10",
+    "formula": "=B10"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F10",
+    "formula": "=E10*D10"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D11",
+    "formula": "=B11"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F11",
+    "formula": "=E11*D11"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "I11",
+    "formula": "=J9/E2*1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F12",
+    "formula": "=E12*D12"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D19",
+    "formula": "=E16"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F19",
+    "formula": "=E19*D19/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "H19",
+    "formula": "=SUM(F19:F27)"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D20",
+    "formula": "=E16*B20"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F20",
+    "formula": "=E20*D20/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D21",
+    "formula": "=B21*G16"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F21",
+    "formula": "=E21*D21/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "J21",
+    "formula": "=H19*H21"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F22",
+    "formula": "=E22*D22/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D23",
+    "formula": "=B23*I16"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F23",
+    "formula": "=E23*D23/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F24",
+    "formula": "=E24*D24"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "I24",
+    "formula": "=J21/100*H24"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "J24",
+    "formula": "=I24+J21"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F25",
+    "formula": "=E25*D25"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D26",
+    "formula": "=B26"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F26",
+    "formula": "=E26*D26"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "I26",
+    "formula": "=J24/E16*1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F27",
+    "formula": "=E27*D27"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D33",
+    "formula": "=E31"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F33",
+    "formula": "=E33*D33/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "H33",
+    "formula": "=SUM(F33:F40)"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D34",
+    "formula": "=E31*B34"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F34",
+    "formula": "=E34*D34/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "B35",
+    "formula": "=E31/1500+1"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D35",
+    "formula": "=B35*G31"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F35",
+    "formula": "=E35*D35/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "J35",
+    "formula": "=H33*H35+F41"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F36",
+    "formula": "=E36*D36/1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "C37",
+    "formula": "=C33"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D37",
+    "formula": "=B37"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F37",
+    "formula": "=E37*D37"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "I37",
+    "formula": "=J35/100*H37"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "J37",
+    "formula": "=I37+J35"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "B38",
+    "formula": "=B35"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D38",
+    "formula": "=B38"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F38",
+    "formula": "=E38*D38"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "B39",
+    "formula": "=B35"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D39",
+    "formula": "=B39"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F39",
+    "formula": "=E39*D39"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "I39",
+    "formula": "=J37/E31*1000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "D40",
+    "formula": "=B38"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F40",
+    "formula": "=E40*D40"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "C41",
+    "formula": "=I31*E31/1000000"
+  },
+  {
+    "sheet": "G Corpo",
+    "cell": "F41",
+    "formula": "=E41*C41"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "D4",
+    "formula": "=F3+100"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "E4",
+    "formula": "=B4*D4*H5*8/1000000"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "F4",
+    "formula": "=E4*I5*G4"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "B5",
+    "formula": "=B3+100"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "D5",
+    "formula": "=D3+100"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "E5",
+    "formula": "=D5*B5*H5*8/1000000"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "F5",
+    "formula": "=E5*I5*G5"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "B6",
+    "formula": "=F4+F5"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "G6",
+    "formula": "=(F5*2)+F4"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "B10",
+    "formula": "=B9+100"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "D10",
+    "formula": "=D9+100"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "H10",
+    "formula": "=H5"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "I10",
+    "formula": "=I5"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "A11",
+    "formula": "=E10*I10*3.5"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "D11",
+    "formula": "=A11*F9"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "B15",
+    "formula": "=(F14*2)+B14+50"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "D15",
+    "formula": "=(F14*2)+D14+50"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "F15",
+    "formula": "=B15*D15*H16*8/1000000"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "A16",
+    "formula": "=F15*I16"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "F16",
+    "formula": "=SUM(D16*8)"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "A17",
+    "formula": "=(A16*3)+D16"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "D17",
+    "formula": "=SUM(A17*G15)"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "C19",
+    "formula": "=D17+D11+B6+100"
+  },
+  {
+    "sheet": "Gab-Arm",
+    "cell": "H19",
+    "formula": "=D17+D11+G6+100"
+  },
+  {
+    "sheet": "Cant",
+    "cell": "B4",
+    "formula": "=B3+10"
+  },
+  {
+    "sheet": "Cant",
+    "cell": "D4",
+    "formula": "=D3+10"
+  },
+  {
+    "sheet": "Cant",
+    "cell": "B5",
+    "formula": "=B4*D4*H5*8/1000000"
+  },
+  {
+    "sheet": "Cant",
+    "cell": "B7",
+    "formula": "=B5*I5*I7"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "F3",
+    "formula": "=K6+L3+N6+L19+K19+K14"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "B4",
+    "formula": "=B3*2+200"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "D4",
+    "formula": "=D3+100"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "E4",
+    "formula": "=SUM(B4:D4)"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "F4",
+    "formula": "=SUM(E4*F3)/1000*H5*8"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "G4",
+    "formula": "=SUM(F4*I5)/1000"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "B7",
+    "formula": "=SUM(G4:G5)*3"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "B12",
+    "formula": "=B11*2+100"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "D12",
+    "formula": "=D11+100"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "E12",
+    "formula": "=SUM(B12*D12)/1000"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "F12",
+    "formula": "=SUM(E12)*H13*8"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "G12",
+    "formula": "=SUM(F12*I13)/1000"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "B15",
+    "formula": "=SUM(G12:G13)*3+I15"
+  },
+  {
+    "sheet": "Batente",
+    "cell": "I15",
+    "formula": "=(B11*D11)/1000000*80"
+  }
+]

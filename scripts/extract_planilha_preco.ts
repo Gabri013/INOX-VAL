@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 
 type CellValue = string | number | boolean | null;
 
@@ -21,6 +22,8 @@ type WorkbookModel = {
 function ensureDir(dir: string) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
+
+const require = createRequire(import.meta.url);
 
 function loadWorkbook(xlsxPath: string) {
   // Lazy require to avoid forcing dependency for non-extraction usage.
@@ -67,7 +70,6 @@ function buildInventory(model: WorkbookModel) {
     totalCells += cellEntries.length;
     totalFormulas += formulaCount;
     lines.push(`## ${sheet.name}`);
-    lines.push(`- Celulas: ${cellEntries.length}`);
     lines.push(`- Formulas: ${formulaCount}`);
     lines.push('');
   }

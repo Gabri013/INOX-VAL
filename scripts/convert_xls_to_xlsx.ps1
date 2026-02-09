@@ -21,21 +21,25 @@ if (-not $libreOffice) {
   throw "LibreOffice nao encontrado. Defina LIBREOFFICE_PATH ou instale o LibreOffice."
 }
 
-$inputFull = Resolve-Path $InputPath
-$outputDir = Split-Path (Resolve-Path $OutputPath -ErrorAction SilentlyContinue) -Parent
+$inputFull = (Resolve-Path $InputPath).Path
+$outputDir = Split-Path -Parent $OutputPath
 if (-not $outputDir) {
-  $outputDir = Split-Path (Resolve-Path (Split-Path $OutputPath -Parent) -ErrorAction SilentlyContinue) -Parent
+  $outputDir = "."
 }
-if (-not $outputDir) {
-  $outputDir = (Resolve-Path (Split-Path $InputPath -Parent)).Path
+$outputDir = (Resolve-Path $outputDir).Path
+if (-not (Test-Path $outputDir)) {
+  New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
 }
 
 & $libreOffice --headless --convert-to xlsx --outdir $outputDir $inputFull | Out-Null
 
-$expected = Join-Path $outputDir ((Split-Path $inputFull -LeafBase) + ".xlsx")
+$baseName = [System.IO.Path]::GetFileNameWithoutExtension($inputFull)
+$expected = Join-Path $outputDir ($baseName + ".xlsx")
 if (-not (Test-Path $expected)) {
   throw "Falha ao gerar XLSX. Verifique se o LibreOffice concluiu a conversao."
 }
+$outputFileName = Split-Path -Leaf $OutputPath
+$outputFull = Join-Path $outputDir $outputFileName
 
-Copy-Item -Path $expected -Destination $OutputPath -Force
-Write-Output "XLSX gerado em: $OutputPath"
+Copy-Item -Path $expected -Destination $outputFull -Force
+Write-Output "XLSX gerado em: $outputFull"

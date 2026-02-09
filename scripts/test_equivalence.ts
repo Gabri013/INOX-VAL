@@ -1,8 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 
 type CellEntry = { value: any; formula?: string };
 type SheetData = Record<string, CellEntry>;
+
+const require = createRequire(import.meta.url);
 
 function loadWorkbook(xlsxPath: string) {
   const XLSX = require('xlsx');

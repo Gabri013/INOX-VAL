@@ -60,6 +60,7 @@
     "embla-carousel-react": "8.6.0",
     "firebase": "^12.8.0",
     "firebase-admin": "^13.6.1",
+    "hyperformula": "^3.1.1",
     "idb": "^8.0.3",
     "input-otp": "1.4.2",
     "jspdf": "^2.5.2",
@@ -82,6 +83,7 @@
     "tailwind-merge": "3.2.0",
     "tw-animate-css": "1.3.8",
     "vaul": "1.1.2",
+    "xlsx": "^0.18.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {

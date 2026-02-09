@@ -23,3 +23,7 @@ serviceAccountKey.json
 
 # OS files
 .DS_Store
+.aider*
+.env
+.env
+.env

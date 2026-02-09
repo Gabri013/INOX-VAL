@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import Ajuda from "./pages/Ajuda";
 import Perfil from "./pages/Perfil";
 import Configuracoes from "./pages/Configuracoes";
+import PrecificacaoPublic from "./pages/PrecificacaoPublic";
 import CalculadoraMesasWizard from "./pages/CalculadoraMesasWizard";
 import Calculadoras from "./pages/Calculadoras";
 import CalculadoraRapida from "./pages/CalculadoraRapida";
@@ -44,6 +45,10 @@ export const router = createBrowserRouter([
   {
     path: "/login",
     Component: Login,
+  },
+  {
+    path: "/precificacao-teste",
+    Component: PrecificacaoPublic,
   },
   {
     path: "/signup",
