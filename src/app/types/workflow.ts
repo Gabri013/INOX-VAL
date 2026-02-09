@@ -40,11 +40,9 @@ export interface ItemMaterial {
 // ========================================
 
 export type StatusOrcamento =
-  | 'Rascunho'
-  | 'Enviado'
   | 'Aprovado'
   | 'Rejeitado'
-  | 'Convertido';
+  | 'Aguardando Aprovacao';
 
 // ========================================
 // ITEM DO ORÇAMENTO
@@ -80,6 +78,7 @@ export interface Orcamento {
   total: number;
   observacoes?: string;
   ordemId?: string;
+  aprovadoEm?: Date | string;
   empresaId?: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;

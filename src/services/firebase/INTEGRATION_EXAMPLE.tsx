@@ -153,7 +153,7 @@ export function ExemploBuscarPorCNPJ() {
 
 export function ExemploListaOrcamentosPorStatus() {
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([]);
-  const [status, setStatus] = useState<'Rascunho' | 'Enviado' | 'Aprovado'>('Enviado');
+  const [status, setStatus] = useState<'Aguardando Aprovacao' | 'Aprovado' | 'Rejeitado'>('Aguardando Aprovacao');
 
   useEffect(() => {
     async function carregarOrcamentos() {
@@ -170,9 +170,9 @@ export function ExemploListaOrcamentosPorStatus() {
   return (
     <div>
       <select value={status} onChange={(e) => setStatus(e.target.value as any)}>
-        <option value="Rascunho">Rascunho</option>
-        <option value="Enviado">Enviado</option>
+        <option value="Aguardando Aprovacao">Aguardando Aprovacao</option>
         <option value="Aprovado">Aprovado</option>
+        <option value="Rejeitado">Rejeitado</option>
       </select>
 
       <ul>
@@ -391,7 +391,7 @@ export function ExemploRealtimeOrcamentos() {
     const q = query(
       collection(db, 'orcamentos'),
       where('empresaId', '==', empresaInfo.empresaId),
-      where('status', '==', 'Enviado')
+      where('status', '==', 'Aguardando Aprovacao')
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {

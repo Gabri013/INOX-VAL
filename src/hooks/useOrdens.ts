@@ -42,6 +42,25 @@ export function useOrdens(options: UseOrdensOptions = {}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const getTimeValue = (value: unknown) => {
+    if (!value) return 0;
+    if (value instanceof Date) return value.getTime();
+    if (typeof value === 'string') {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+    }
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      'toDate' in value &&
+      typeof (value as { toDate?: unknown }).toDate === 'function'
+    ) {
+      const dateValue = (value as { toDate: () => Date }).toDate();
+      return dateValue instanceof Date ? dateValue.getTime() : 0;
+    }
+    return 0;
+  };
+
   // Carregar ordens
   const normalizeOrdem = (ordem: OrdemProducao): OrdemProducao => {
     const toDate = (value: unknown) => {
@@ -93,11 +112,15 @@ export function useOrdens(options: UseOrdensOptions = {}) {
 
       const listResult = await ordensService.list({
         where,
-        orderBy: [{ field: 'dataAbertura', direction: 'desc' }],
+        includeDeleted: true,
       });
 
       if (listResult.success && listResult.data) {
-        setOrdens(listResult.data.items.map(normalizeOrdem));
+        const items = listResult.data.items
+          .filter((item) => (item as { isDeleted?: boolean }).isDeleted !== true)
+          .map(normalizeOrdem)
+          .sort((a, b) => getTimeValue(b.dataAbertura) - getTimeValue(a.dataAbertura));
+        setOrdens(items);
       } else {
         setError(listResult.error || 'Erro ao carregar ordens');
         toast.error(listResult.error || 'Erro ao carregar ordens');
@@ -126,6 +149,10 @@ export function useOrdens(options: UseOrdensOptions = {}) {
 
         if (orcamento.status !== 'Aprovado') {
           return { success: false, error: 'Apenas orÇõamentos aprovados podem gerar OP' };
+        }
+
+        if (orcamento.ordemId) {
+          return { success: false, error: 'Este orcamento ja foi convertido em OP' };
         }
 
         const numero = `OP-${Date.now()}`;
@@ -158,7 +185,6 @@ export function useOrdens(options: UseOrdensOptions = {}) {
         setOrdens((prev) => [normalizeOrdem(created), ...prev]);
         await httpClient.put(`/api/orcamentos/${orcamentoId}`, {
           ...orcamento,
-          status: 'Convertido',
           ordemId: created.id,
         });
         toast.success(`OP ${created.numero} criada com sucesso!`);
@@ -174,6 +200,10 @@ export function useOrdens(options: UseOrdensOptions = {}) {
       if (orcamento.status !== 'Aprovado') {
         return { success: false, error: 'Apenas orçamentos aprovados podem gerar OP' };
       }
+
+        if (orcamento.ordemId) {
+          return { success: false, error: 'Este orcamento ja foi convertido em OP' };
+        }
 
       const numero = `OP-${Date.now()}`;
       const novaOrdem: OrdemProducao = {
@@ -205,7 +235,6 @@ export function useOrdens(options: UseOrdensOptions = {}) {
       if (result.success && result.data) {
         setOrdens((prev) => [normalizeOrdem(result.data!), ...prev]);
         await orcamentosService.update(orcamentoId, {
-          status: 'Convertido',
           ordemId: result.data.id,
         } as Partial<any>);
         toast.success(`OP ${result.data.numero} criada com sucesso!`);

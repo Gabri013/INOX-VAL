@@ -13,6 +13,7 @@ import {
   calcularMesas,
   calcularPortasBatentes,
   calcularPrateleiras,
+  calcularCubaAvulsa,
 } from '../system/calculations';
 
 type FieldValue = string | boolean;
@@ -36,17 +37,47 @@ const RESULT_LABELS: Record<string, string> = {
   precoFinal: 'Preço final',
 };
 
-const parseNumber = (value: FieldValue) => {
-  if (typeof value === 'boolean') return value ? 1 : 0;
-  const trimmed = value.trim();
-  if (!trimmed) return 0;
-  const normalized = trimmed.replace(/\s/g, '');
-  const cleaned = normalized.includes(',')
-    ? normalized.replace(/\./g, '').replace(',', '.')
-    : normalized;
-  const numeric = Number(cleaned);
-  return Number.isFinite(numeric) ? numeric : 0;
+// Validação forte de número
+const parsePtNumber = (raw: unknown): { ok: true; value: number } | { ok: false; error: string } => {
+  if (typeof raw === 'boolean') return { ok: true, value: raw ? 1 : 0 };
+  const s = String(raw ?? '').trim();
+  if (!s) return { ok: false, error: 'Obrigatório' };
+  const norm = s.replace(/\s/g, '');
+  const cleaned = norm.includes(',') ? norm.replace(/\./g, '').replace(',', '.') : norm;
+  const n = Number(cleaned);
+  if (!Number.isFinite(n)) return { ok: false, error: 'Número inválido' };
+  return { ok: true, value: n };
 };
+
+// Validação de campos obrigatórios e tipos
+function validateBancadas(values: Record<string, FieldValue>, orcamentoTipo: string): { errors: Record<string, string>, parsed: any } {
+  let required: string[] = [];
+  if (orcamentoTipo === 'somenteCuba') {
+    required = ['comprimento', 'largura', 'alturaFrontal', 'espessuraChapa', 'quantidadeCubas'];
+  } else {
+    required = [
+      'comprimento', 'largura', 'alturaFrontal', 'espessuraChapa',
+      'quantidadePes', 'tipoTuboPes', 'alturaPes', 'tipoPrateleiraInferior',
+    ];
+  }
+  const errors: Record<string, string> = {};
+  const parsed: any = {};
+  for (const key of required) {
+    const res = parsePtNumber(values[key]);
+    if (!res.ok) errors[key] = res.error;
+    else parsed[key] = res.value;
+  }
+  // Campos booleanos
+  parsed.temContraventamento = Boolean(values.temContraventamento);
+  parsed.usarMaoFrancesa = Boolean(values.usarMaoFrancesa);
+  // Campos select
+  parsed.tipoTuboPes = String(values.tipoTuboPes || 'tuboRedondo');
+  parsed.tipoPrateleiraInferior = String(values.tipoPrateleiraInferior || 'nenhuma');
+  // Cuba
+  parsed.quantidadeCubas = parsePtNumber(values.quantidadeCubas).ok ? parsePtNumber(values.quantidadeCubas).value : 0;
+  parsed.tipoCuba = String(values.tipoCuba || 'sem');
+  return { errors, parsed };
+}
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', {
@@ -79,19 +110,20 @@ const setNestedValue = (values: Record<string, FieldValue>, path: string, value:
 });
 
 const buildGlobalParams = (values: Record<string, string>): GlobalParams => ({
-  precoKgInox: parseNumber(values.precoKgInox),
-  fatorTampo: parseNumber(values.fatorTampo),
-  fatorCuba: parseNumber(values.fatorCuba),
-  fatorVenda: parseNumber(values.fatorVenda),
-  percentualDesperdicio: parseNumber(values.percentualDesperdicio) / 100,
-  percentualMaoDeObra: parseNumber(values.percentualMaoDeObra) / 100,
+  precoKgInox: parsePtNumber(values.precoKgInox).ok ? parsePtNumber(values.precoKgInox).value : 0,
+  fatorTampo: parsePtNumber(values.fatorTampo).ok ? parsePtNumber(values.fatorTampo).value : 0,
+  fatorCuba: parsePtNumber(values.fatorCuba).ok ? parsePtNumber(values.fatorCuba).value : 0,
+  fatorVenda: parsePtNumber(values.fatorVenda).ok ? parsePtNumber(values.fatorVenda).value : 0,
+  percentualDesperdicio: parsePtNumber(values.percentualDesperdicio).ok ? parsePtNumber(values.percentualDesperdicio).value / 100 : 0,
+  percentualMaoDeObra: parsePtNumber(values.percentualMaoDeObra).ok ? parsePtNumber(values.percentualMaoDeObra).value / 100 : 0,
 });
 
 export default function PrecificacaoPage() {
   const [produtoTipo, setProdutoTipo] = useState<ProdutoTipo>('bancadas');
   const [globalValues, setGlobalValues] = useState<Record<string, string>>(DEFAULT_GLOBAL_VALUES);
   const [productValues, setProductValues] = useState<Record<string, FieldValue>>({});
-  const [result, setResult] = useState<Record<string, number> | null>(null);
+  const [result, setResult] = useState<any>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   // Opção de orçamento: 'somenteCuba', 'bancadaSemCuba', 'bancadaComCuba'
   const [orcamentoTipo, setOrcamentoTipo] = useState<'somenteCuba' | 'bancadaSemCuba' | 'bancadaComCuba'>('bancadaComCuba');
 
@@ -156,49 +188,17 @@ export default function PrecificacaoPage() {
     const params = buildGlobalParams(globalValues);
     switch (produtoTipo) {
       case 'bancadas': {
-        // Monta os parâmetros conforme a opção de orçamento
-        let args: any = {};
-        if (orcamentoTipo === 'somenteCuba') {
-          args = {
-            quantidadeCubas: parseNumber(productValues.quantidadeCubas),
-            tipoCuba: String(productValues.tipoCuba || 'sem'),
-            comprimento: parseNumber(productValues.comprimento),
-            largura: parseNumber(productValues.largura),
-            alturaFrontal: parseNumber(productValues.alturaFrontal),
-            espessuraChapa: parseNumber(productValues.espessuraChapa),
-          };
-        } else if (orcamentoTipo === 'bancadaSemCuba') {
-          args = {
-            comprimento: parseNumber(productValues.comprimento),
-            largura: parseNumber(productValues.largura),
-            alturaFrontal: parseNumber(productValues.alturaFrontal),
-            espessuraChapa: parseNumber(productValues.espessuraChapa),
-            quantidadePes: parseNumber(productValues.quantidadePes) as 4 | 5 | 6 | 7,
-            tipoTuboPes: String(productValues.tipoTuboPes || 'tuboRedondo'),
-            alturaPes: parseNumber(productValues.alturaPes),
-            temContraventamento: Boolean(productValues.temContraventamento),
-            tipoPrateleiraInferior: String(productValues.tipoPrateleiraInferior || 'nenhuma'),
-            usarMaoFrancesa: Boolean(productValues.usarMaoFrancesa),
-            quantidadeCubas: 0,
-            tipoCuba: 'sem',
-          };
-        } else {
-          args = {
-            comprimento: parseNumber(productValues.comprimento),
-            largura: parseNumber(productValues.largura),
-            alturaFrontal: parseNumber(productValues.alturaFrontal),
-            espessuraChapa: parseNumber(productValues.espessuraChapa),
-            quantidadeCubas: parseNumber(productValues.quantidadeCubas),
-            tipoCuba: String(productValues.tipoCuba || 'sem'),
-            quantidadePes: parseNumber(productValues.quantidadePes) as 4 | 5 | 6 | 7,
-            tipoTuboPes: String(productValues.tipoTuboPes || 'tuboRedondo'),
-            alturaPes: parseNumber(productValues.alturaPes),
-            temContraventamento: Boolean(productValues.temContraventamento),
-            tipoPrateleiraInferior: String(productValues.tipoPrateleiraInferior || 'nenhuma'),
-            usarMaoFrancesa: Boolean(productValues.usarMaoFrancesa),
-          };
+        const { errors: valErrors, parsed } = validateBancadas(productValues, orcamentoTipo);
+        setErrors(valErrors);
+        if (Object.keys(valErrors).length > 0) {
+          setResult(null);
+          return;
         }
-        setResult(toResultMap(calcularBancadas(args, params)));
+        if (orcamentoTipo === 'somenteCuba') {
+          setResult(calcularCubaAvulsa(parsed, params));
+        } else {
+          setResult(calcularBancadas(parsed, params));
+        }
         return;
       }
       case 'lavatorios':
@@ -435,7 +435,6 @@ export default function PrecificacaoPage() {
       {productConfig && (
         <div className="rounded-md border p-4">
           <h2 className="text-sm font-semibold">3) Medidas e opções</h2>
-          {/* Campo de seleção para tipo de orçamento (apenas para bancadas/cubas) */}
           {produtoTipo === 'bancadas' && (
             <div className="mb-4">
               <label className="text-xs font-medium text-muted-foreground">O que deseja orçar?</label>
@@ -483,6 +482,9 @@ export default function PrecificacaoPage() {
                     onChange={(event) => handleProductChange(field, event.target.value)}
                   />
                 )}
+                {errors[field.name] && (
+                  <p className="text-xs text-red-500">{errors[field.name]}</p>
+                )}
                 {field.unit && (
                   <p className="text-[11px] text-muted-foreground">Unidade: {field.unit}</p>
                 )}
@@ -510,6 +512,61 @@ export default function PrecificacaoPage() {
                 <p className="text-lg font-semibold text-foreground">{formatCurrency(item.value)}</p>
               </div>
             ))}
+          </div>
+          {/* Breakdown detalhado para bancadas */}
+          {produtoTipo === 'bancadas' && result.breakdown && (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold mb-2">Detalhamento do cálculo</h3>
+              <div className="mb-2">
+                <strong>Materiais:</strong>
+                <ul className="ml-4 list-disc">
+                  {result.breakdown.materials.map((m: any, i: number) => (
+                    <li key={i}>{m.description}: {m.qty} {m.unit} x R$ {m.unitCost} = <strong>R$ {m.total}</strong></li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mb-2">
+                <strong>Acessórios:</strong>
+                <ul className="ml-4 list-disc">
+                  {result.breakdown.accessories.map((a: any, i: number) => (
+                    <li key={i}>{a.description}: {a.qty} un x R$ {a.unitCost} = <strong>R$ {a.total}</strong></li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mb-2">
+                <strong>Processos:</strong>
+                <ul className="ml-4 list-disc">
+                  {result.breakdown.processes.map((p: any, i: number) => (
+                    <li key={i}>{p.description}: {p.minutes} min x R$ {p.costPerHour}/h = <strong>R$ {p.total}</strong></li>
+                  ))}
+                </ul>
+              </div>
+              {result.warnings && result.warnings.length > 0 && (
+                <div className="mt-2 text-yellow-700">
+                  <strong>Avisos:</strong>
+                  <ul className="ml-4 list-disc">
+                    {result.warnings.map((w: string, i: number) => (
+                      <li key={i}>{w}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+          {/* Bloco explicativo da lógica do cálculo */}
+          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded">
+            <h3 className="text-sm font-semibold mb-1">Como este orçamento é calculado?</h3>
+            <p className="text-xs text-blue-900">
+              O sistema soma o custo dos materiais (chapa, tubos, acessórios), calcula o custo dos processos de fabricação (corte, dobra, solda, acabamento, montagem) e aplica os percentuais de desperdício, mão de obra e o fator de venda. O resultado é um orçamento detalhado, transparente e auditável.<br />
+              <br />
+              <strong>Materiais:</strong> calculados pela área e espessura das chapas, comprimento dos tubos e quantidade de acessórios, multiplicados pelo preço do kg ou unidade.<br />
+              <strong>Processos:</strong> estimados em minutos para cada etapa (corte, dobra, solda, acabamento, montagem), multiplicados pelo custo/hora de cada processo.<br />
+              <strong>Desperdício:</strong> aplica um acréscimo sobre o custo dos materiais para cobrir perdas de fabricação.<br />
+              <strong>Mão de obra:</strong> aplica um percentual sobre o subtotal para cobrir custos de produção.<br />
+              <strong>Fator de venda:</strong> multiplica o custo total para formar o preço final de venda.<br />
+              <br />
+              Todos os valores e regras podem ser ajustados conforme a realidade da fábrica e do produto.
+            </p>
           </div>
         </div>
       )}

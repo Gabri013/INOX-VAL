@@ -200,7 +200,7 @@ export function OrcamentoForm({ onSubmit, onCancel, initialMode = 'manual' }: Or
       clienteNome,
       data: baseDate,
       validade: new Date(baseDate.getTime() + validade * 24 * 60 * 60 * 1000),
-      status: 'Rascunho',
+      status: 'Aguardando Aprovacao',
       itens,
       subtotal,
       desconto,

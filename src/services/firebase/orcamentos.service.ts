@@ -21,13 +21,18 @@ import { isModeloValido } from '@/bom/models';
 
 const MAX_ITENS_ORCAMENTO = 200;
 
-const STATUS_TRANSITIONS: Record<StatusOrcamento, StatusOrcamento[]> = {
-  'Rascunho': ['Enviado', 'Rejeitado'],
-  'Enviado': ['Aprovado', 'Rejeitado'],
-  'Aprovado': ['Convertido'],
-  'Rejeitado': [], // Estado final
-  'Convertido': [], // Estado final
+const STATUS_TRANSITIONS: Record<string, StatusOrcamento[]> = {
+  'Aguardando Aprovacao': ['Aprovado', 'Rejeitado'],
+  'Aprovado': [],
+  'Rejeitado': [],
+  // Legados
+  'Rascunho': ['Aguardando Aprovacao', 'Aprovado', 'Rejeitado'],
+  'Enviado': ['Aguardando Aprovacao', 'Aprovado', 'Rejeitado'],
+  'Convertido': ['Aprovado'],
 };
+
+const isAguardandoAprovacao = (status: string) =>
+  status === 'Aguardando Aprovacao' || status === 'Rascunho' || status === 'Enviado';
 
 export function getOrcamentosService(callback: (orcamentos: any[]) => void): () => void {
   const empresaInfo = getEmpresaContext();
@@ -96,10 +101,10 @@ export class OrcamentosService extends BaseFirestoreService<Orcamento> {
 
         if (oldStatus !== newStatus) {
           const allowedTransitions = STATUS_TRANSITIONS[oldStatus];
-          if (!allowedTransitions.includes(newStatus)) {
+          if (!allowedTransitions || !allowedTransitions.includes(newStatus)) {
             errors.push(
               `Transição de status inválida: "${oldStatus}" → "${newStatus}". ` +
-              `Transições permitidas: ${allowedTransitions.join(', ')}`
+              `Transições permitidas: ${allowedTransitions ? allowedTransitions.join(', ') : 'nenhuma'}`
             );
           }
         }
@@ -178,14 +183,14 @@ export class OrcamentosService extends BaseFirestoreService<Orcamento> {
       return existing;
     }
 
-    if (existing.data.status !== 'Enviado') {
+    if (!isAguardandoAprovacao(existing.data.status)) {
       return {
         success: false,
-        error: 'Apenas orçamentos com status "Enviado" podem ser aprovados',
+        error: 'Apenas orçamentos aguardando aprovação podem ser aprovados',
       };
     }
 
-    return this.update(id, { status: 'Aprovado' });
+    return this.update(id, { status: 'Aprovado', aprovadoEm: new Date() } as Partial<Orcamento>);
   }
 
   /**
@@ -197,10 +202,10 @@ export class OrcamentosService extends BaseFirestoreService<Orcamento> {
       return existing;
     }
 
-    if (!['Rascunho', 'Enviado'].includes(existing.data.status)) {
+    if (!isAguardandoAprovacao(existing.data.status)) {
       return {
         success: false,
-        error: 'Apenas orçamentos com status "Rascunho" ou "Enviado" podem ser rejeitados',
+        error: 'Apenas orçamentos aguardando aprovação podem ser rejeitados',
       };
     }
 
@@ -229,7 +234,6 @@ export class OrcamentosService extends BaseFirestoreService<Orcamento> {
     }
 
     return this.update(id, {
-      status: 'Convertido',
       ordemId,
     });
   }
@@ -258,11 +262,11 @@ export class OrcamentosService extends BaseFirestoreService<Orcamento> {
       const orcamentos = result.data.items;
       const stats = {
         total: orcamentos.length,
-        rascunhos: orcamentos.filter((o) => o.status === 'Rascunho').length,
-        enviados: orcamentos.filter((o) => o.status === 'Enviado').length,
+        rascunhos: orcamentos.filter((o) => o.status === 'Aguardando Aprovacao').length,
+        enviados: 0,
         aprovados: orcamentos.filter((o) => o.status === 'Aprovado').length,
         rejeitados: orcamentos.filter((o) => o.status === 'Rejeitado').length,
-        convertidos: orcamentos.filter((o) => o.status === 'Convertido').length,
+        convertidos: orcamentos.filter((o) => !!o.ordemId).length,
         valorTotal: orcamentos.reduce((acc, o) => acc + o.total, 0),
       };
 

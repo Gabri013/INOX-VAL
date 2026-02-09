@@ -195,7 +195,7 @@ export default function PopularBanco() {
         clienteNome,
         data: new Date(),
         validade: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        status: 'Rascunho',
+        status: 'Aguardando Aprovacao',
         itens: [
           {
             id: '1',

@@ -43,12 +43,19 @@ export default function Ordens() {
 
   // ❌ REMOVIDO: Mock de ordens (apenas ordens reais de orçamentos aprovados)
   const todasOrdens = ordens; // Apenas ordens convertidas de orçamentos aprovados
+  const formatDateSafe = (value: unknown) => {
+    if (!value) return "-";
+    const date = value instanceof Date ? value : new Date(value as any);
+    if (Number.isNaN(date.getTime())) return "-";
+    return format(date, "dd/MM/yyyy", { locale: ptBR });
+  };
 
   // Filtros
   const filteredOrdens = todasOrdens.filter((ord) => {
-    const matchesSearch = 
-      ord.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ord.clienteNome.toLowerCase().includes(searchTerm.toLowerCase());
+    const search = searchTerm.toLowerCase();
+    const numero = ord.numero ? ord.numero.toLowerCase() : "";
+    const cliente = ord.clienteNome ? ord.clienteNome.toLowerCase() : "";
+    const matchesSearch = numero.includes(search) || cliente.includes(search);
     
     const matchesStatus = statusFilter === "all" || ord.status === statusFilter;
     
@@ -138,7 +145,7 @@ export default function Ordens() {
       key: "dataAbertura",
       label: "Data Abertura",
       sortable: true,
-      render: (ord: OrdemProducao) => format(ord.dataAbertura, "dd/MM/yyyy", { locale: ptBR })
+      render: (ord: OrdemProducao) => formatDateSafe(ord.dataAbertura)
     },
     {
       key: "clienteNome",
@@ -150,7 +157,7 @@ export default function Ordens() {
       key: "itens",
       label: "Itens",
       render: (ord: OrdemProducao) => (
-        <Badge variant="outline">{ord.itens.length} itens</Badge>
+        <Badge variant="outline">{ord.itens?.length ?? 0} itens</Badge>
       )
     },
     {
@@ -167,7 +174,7 @@ export default function Ordens() {
       label: "Previsão",
       render: (ord: OrdemProducao) => (
         <span className="text-sm text-muted-foreground">
-          {format(ord.dataPrevisao, "dd/MM/yyyy", { locale: ptBR })}
+          {formatDateSafe(ord.dataPrevisao)}
         </span>
       )
     },

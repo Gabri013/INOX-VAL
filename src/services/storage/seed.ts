@@ -49,7 +49,7 @@ export async function seedDatabase(): Promise<void> {
         clienteNome: clientesSeed[0]?.nome || 'Cliente Demo',
         data: new Date('2024-02-01T00:00:00Z'),
         validade: new Date('2024-03-02T00:00:00Z'),
-        status: 'Enviado',
+        status: 'Aguardando Aprovacao',
         itens: [
           {
             id: 'item-001',

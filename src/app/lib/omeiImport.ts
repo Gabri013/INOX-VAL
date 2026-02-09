@@ -1,4 +1,4 @@
-export interface OmeiItem {
+﻿export interface OmeiItem {
   quantidade: number;
   unidade?: string;
   codigo?: string;
@@ -24,6 +24,17 @@ const UNIDADES = new Set(["UN", "KG", "MT", "M2", "M3", "LT"]);
 
 function normalizeSpaces(value: string) {
   return value.replace(/\s+/g, " ").trim();
+}
+
+function getSection(text: string, start: RegExp, end?: RegExp) {
+  const startMatch = text.match(start);
+  if (!startMatch || startMatch.index === undefined) return "";
+  const startIndex = startMatch.index + startMatch[0].length;
+  const after = text.slice(startIndex);
+  if (!end) return after;
+  const endMatch = after.match(end);
+  if (!endMatch || endMatch.index === undefined) return after;
+  return after.slice(0, endMatch.index);
 }
 
 function parseDateBR(value?: string) {
@@ -61,6 +72,16 @@ function isCodeToken(token: string) {
   return /[0-9]/.test(token) && /[A-Za-z0-9\-\/]/.test(token);
 }
 
+function isItemStart(tokens: string[], index: number) {
+  const token = tokens[index];
+  if (!token) return false;
+  if (splitQuantityUnit(token)) return true;
+  if (!isQuantityToken(token)) return false;
+  const nextToken = tokens[index + 1];
+  if (!nextToken) return false;
+  return isUnitToken(nextToken) || !!splitQuantityUnit(nextToken);
+}
+
 function extractItems(sectionRaw: string): OmeiItem[] {
   const text = normalizeSpaces(sectionRaw);
   if (!text) return [];
@@ -78,17 +99,24 @@ function extractItems(sectionRaw: string): OmeiItem[] {
       unit = qtyUnit.unit;
       i += 1;
     } else if (isQuantityToken(tokens[i])) {
+      const nextToken = tokens[i + 1];
+      const nextIsUnit = nextToken ? isUnitToken(nextToken) : false;
+      const nextQtyUnit = nextToken ? splitQuantityUnit(nextToken) : null;
+
+      if (!nextIsUnit && !nextQtyUnit) {
+        i += 1;
+        continue;
+      }
+
       qty = parseNumber(tokens[i]);
       i += 1;
-      if (i < tokens.length && isUnitToken(tokens[i])) {
-        unit = tokens[i].toUpperCase();
+
+      if (nextIsUnit && nextToken) {
+        unit = nextToken.toUpperCase();
         i += 1;
-      } else if (i < tokens.length) {
-        const nextQtyUnit = splitQuantityUnit(tokens[i]);
-        if (nextQtyUnit) {
-          unit = nextQtyUnit.unit;
-          i += 1;
-        }
+      } else if (nextQtyUnit) {
+        unit = nextQtyUnit.unit;
+        i += 1;
       }
     } else {
       i += 1;
@@ -102,7 +130,7 @@ function extractItems(sectionRaw: string): OmeiItem[] {
     }
 
     const descTokens: string[] = [];
-    while (i < tokens.length && !isQuantityToken(tokens[i]) && !splitQuantityUnit(tokens[i])) {
+    while (i < tokens.length && !isItemStart(tokens, i)) {
       descTokens.push(tokens[i]);
       i += 1;
     }
@@ -134,22 +162,27 @@ export function parseOmeiText(rawText: string): OmeiParsed {
     raw.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
   );
 
-  const numeroMatch = text.match(/ORCAMENTO\s*N[ºO]?\s*([0-9]+)/i);
+  const numeroMatch = text.match(/ORCAMENTO\s*N(?:\u00C2?\u00BA|O)?\s*([0-9]+)/i);
   const numero = numeroMatch ? numeroMatch[1] : undefined;
 
-  const clienteNomeMatch = text.match(/Informacoes do Cliente\s+(.*?)\s+Contato:/i);
-  const clienteNome = clienteNomeMatch ? normalizeSpaces(clienteNomeMatch[1]) : undefined;
+  const clienteSection = getSection(text, /Informacoes do Cliente/i, /Itens do ORCAMENTO/i);
+  const clienteNomeRaw = clienteSection
+    ? clienteSection.split(/Contato:|CNPJ:|Inscricao Estadual:|Telefone:|Email:/i)[0]
+    : "";
+  const clienteNome = clienteNomeRaw ? normalizeSpaces(clienteNomeRaw) : undefined;
 
-  const contatoMatch = text.match(/Contato:\s*([^C]+?)\s+CNPJ:/i);
+  const contatoMatch = clienteSection.match(
+    /Contato:\s*(.+?)(?:\s+CNPJ:|\s+Inscricao Estadual:|\s+Telefone:|\s+Email:|$)/i
+  );
   const contato = contatoMatch ? normalizeSpaces(contatoMatch[1]) : undefined;
 
-  const cnpjMatch = text.match(/CNPJ:\s*([0-9.\-\/]+)/i);
+  const cnpjMatch = clienteSection.match(/CNPJ:\s*([0-9.\-\/]+)/i);
   const cnpj = cnpjMatch ? cnpjMatch[1] : undefined;
 
-  const emailMatch = text.match(/Email:\s*([^\s]+)/i);
+  const emailMatch = clienteSection.match(/Email:\s*([^\s]+)/i);
   const email = emailMatch ? emailMatch[1] : undefined;
 
-  const telefoneMatch = text.match(/Telefone:\s*([0-9\-\(\)\s]+)/i);
+  const telefoneMatch = clienteSection.match(/Telefone:\s*([0-9\-\(\)\s]+)/i);
   const telefone = telefoneMatch ? normalizeSpaces(telefoneMatch[1]) : undefined;
 
   const dataMatch = text.match(/ORCAMENTO\s*-\s*incluido em:\s*(\d{2}\/\d{2}\/\d{4})/i);
@@ -161,20 +194,13 @@ export function parseOmeiText(rawText: string): OmeiParsed {
   const validadeMatch = text.match(/VALIDADE DA PROPOSTA\s*(\d+)\s*DIAS/i);
   const validadeDias = validadeMatch ? Number(validadeMatch[1]) : undefined;
 
-  const itensSection = (() => {
-    const split = text.split(/Itens do ORCAMENTO/i);
-    if (split.length < 2) return "";
-    const after = split[1];
-    const endSplit = after.split(/Outras Informacoes/i);
-    return endSplit[0] || "";
-  })();
-
+  const itensSection = getSection(text, /Itens do ORCAMENTO/i, /Outras Informacoes/i);
   const itens = extractItems(itensSection);
 
   let observacoes = "";
-  const outrasInfoSplit = text.split(/Outras Informacoes/i);
-  if (outrasInfoSplit.length > 1) {
-    observacoes = normalizeSpaces(outrasInfoSplit[1] || "");
+  const outrasInfoSection = getSection(text, /Outras Informacoes/i, /Gerado em/i);
+  if (outrasInfoSection) {
+    observacoes = normalizeSpaces(outrasInfoSection);
   }
 
   return {

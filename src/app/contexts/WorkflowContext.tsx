@@ -172,7 +172,6 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
 
     // Atualizar orÃ§amento
     updateOrcamento(orcamentoId, {
-      status: "Convertido",
       ordemId: novaOrdem.id
     });
 

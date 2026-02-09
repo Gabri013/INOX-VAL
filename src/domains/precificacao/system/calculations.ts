@@ -1,3 +1,41 @@
+// Cálculo específico para orçamento de cuba avulsa (fundo + 2 laterais + 2 frentes/traseiras + processos)
+export function calcularCubaAvulsa(input: { comprimento: number, largura: number, alturaFrontal: number, espessuraChapa: number, quantidadeCubas: number }, params: GlobalParams) {
+  // Considera fundo + 2 laterais + 2 frentes/traseiras (sem flange)
+  const fundo = (input.comprimento * input.largura) / 1_000_000;
+  const lateral = (input.alturaFrontal * input.largura) / 1_000_000;
+  const frente = (input.comprimento * input.alturaFrontal) / 1_000_000;
+  const tables = { ...DEFAULT_TABLES, inoxKgPrice: params.precoKgInox };
+  const globals = {
+    desperdicioPct: params.percentualDesperdicio,
+    maoDeObraPct: params.percentualMaoDeObra,
+    vendaFactor: params.fatorVenda,
+  };
+  const materials = [
+    { kind: 'sheet' as const, description: 'Chapa fundo', qty: fundo * input.quantidadeCubas, unit: 'm2' as const, meta: { thicknessMm: input.espessuraChapa } },
+    { kind: 'sheet' as const, description: 'Chapa laterais', qty: 2 * lateral * input.quantidadeCubas, unit: 'm2' as const, meta: { thicknessMm: input.espessuraChapa } },
+    { kind: 'sheet' as const, description: 'Chapa frente/traseira', qty: 2 * frente * input.quantidadeCubas, unit: 'm2' as const, meta: { thicknessMm: input.espessuraChapa } },
+  ];
+  // Processos básicos: corte, dobra, solda, acabamento
+  const processes = [
+    { kind: 'cut' as const, description: 'Corte', minutes: 10 * input.quantidadeCubas },
+    { kind: 'bend' as const, description: 'Dobras', minutes: 20 * input.quantidadeCubas },
+    { kind: 'weld' as const, description: 'Solda', minutes: 25 * input.quantidadeCubas },
+    { kind: 'finish' as const, description: 'Acabamento', minutes: 20 * input.quantidadeCubas },
+    { kind: 'assembly' as const, description: 'Montagem', minutes: 10 * input.quantidadeCubas },
+  ];
+  const result = price(tables, globals, { materials, processes });
+  return {
+    custoChapa: result.material,
+    custoEstrutura: 0,
+    custoCubas: 0,
+    custoAcessorios: 0,
+    custoMaterial: Math.round((result.material) * 100) / 100,
+    custoProducao: Math.round((result.processes + result.overhead) * 100) / 100,
+    precoFinal: result.sellingPrice,
+    breakdown: result.breakdown,
+    warnings: result.warnings,
+  };
+}
 import type {
   GlobalParams,
   BancadasInput,
@@ -19,6 +57,9 @@ import type {
   TipoTuboPes,
   LavatorioModeloPadrao,
 } from './types';
+
+import { price } from '../../precificacao/engine/pricingEngine';
+import { DEFAULT_TABLES } from '../../precificacao/engine/tables.default';
 
 const DENSIDADE_INOX = 8000; // kg/m³
 
@@ -98,7 +139,16 @@ const acessorioPreco = {
   valvula: 80,
 };
 
-export const calcularBancadas = (input: BancadasInput, params: GlobalParams): BancadasResult => {
+export const calcularBancadas = (input: BancadasInput, params: GlobalParams): BancadasResult & { breakdown: any, warnings: string[] } => {
+  // Normaliza tabelas e parâmetros globais
+  const tables = { ...DEFAULT_TABLES, inoxKgPrice: params.precoKgInox };
+  const globals = {
+    desperdicioPct: params.percentualDesperdicio,
+    maoDeObraPct: params.percentualMaoDeObra,
+    vendaFactor: params.fatorVenda,
+  };
+
+  // Engenharia: áreas e comprimentos
   const areaTampo = toArea(input.comprimento, input.largura);
   const areaFrontal = toArea(input.comprimento, input.alturaFrontal);
   const areaPrateleira = areaTampo * prateleiraFactor(input.tipoPrateleiraInferior);
@@ -109,29 +159,93 @@ export const calcularBancadas = (input: BancadasInput, params: GlobalParams): Ba
   const cubaAreaBase = toArea(600, 400);
   const areaCubas = cubaAreaBase * input.quantidadeCubas;
 
-  const pesoChapaTotal = pesoChapa(areaChapa, input.espessuraChapa);
-  const pesoCubasTotal = pesoChapa(areaCubas, input.espessuraChapa);
+  // Tubo
+  const tubeKey =
+    input.tipoTuboPes === 'tuboQuadrado' ? 'tuboQuadrado_40x40x1.2'
+    : input.tipoTuboPes === 'tuboRedondo' ? 'tuboRedondo_38.1x1.2'
+    : 'tuboQuadrado_40x40x1.2';
+  const metrosPes = (input.quantidadePes * input.alturaPes) / 1000;
+  const metrosTravessas = ((input.comprimento + input.largura) * 2) / 1000 * (input.temContraventamento ? 1.2 : 0.6);
 
-  const tuboComprimento = input.quantidadePes * (input.alturaPes / 1000) + (input.comprimento + input.largura) * 2 / 1000;
-  const pesoEstrutura = tuboComprimento * tuboKgPorMetro(input.tipoTuboPes);
+  // Materiais
+  const materials = [
+    {
+      kind: 'sheet' as const,
+      description: 'Chapa tampo',
+      qty: areaTampo,
+      unit: 'm2' as const,
+      meta: { thicknessMm: input.espessuraChapa },
+    },
+    {
+      kind: 'sheet' as const,
+      description: 'Chapa frontal',
+      qty: areaFrontal,
+      unit: 'm2' as const,
+      meta: { thicknessMm: input.espessuraChapa },
+    },
+    {
+      kind: 'sheet' as const,
+      description: 'Chapa prateleira',
+      qty: areaPrateleira,
+      unit: 'm2' as const,
+      meta: { thicknessMm: input.espessuraChapa },
+    },
+    {
+      kind: 'sheet' as const,
+      description: 'Chapa contraventamento',
+      qty: areaContraventamento,
+      unit: 'm2' as const,
+      meta: { thicknessMm: input.espessuraChapa },
+    },
+    {
+      kind: 'sheet' as const,
+      description: 'Chapa cubas',
+      qty: areaCubas,
+      unit: 'm2' as const,
+      meta: { thicknessMm: input.espessuraChapa },
+    },
+    {
+      kind: 'tube' as const,
+      description: 'Tubo estrutura',
+      qty: metrosPes + metrosTravessas,
+      unit: 'm' as const,
+      meta: { tubeKey },
+    },
+  ];
 
-  const pesoMaoFrancesa = input.usarMaoFrancesa ? maoFrancesaKg(input.comprimento) : 0;
+  // Acessórios
+  const accessories = [
+    { description: 'peNivelador', qty: input.quantidadePes, unit: 'un' as const },
+  ];
+  if (input.usarMaoFrancesa) {
+    accessories.push({ description: 'maoFrancesa', qty: 1, unit: 'un' as const });
+  }
 
-  // Aplica fatorTampo e fatorCuba separadamente
-  const custoChapa = custoMaterial(pesoChapaTotal, params.precoKgInox) * params.fatorTampo;
-  const custoCubas = custoMaterial(pesoCubasTotal, params.precoKgInox) * params.fatorCuba;
-  const custoEstrutura = custoMaterial(pesoEstrutura, params.precoKgInox);
-  const custoAcessorios = custoMaterial(pesoMaoFrancesa, params.precoKgInox);
+  // Processos (ajuste conforme histórico real)
+  const bends = 4; // bordas do tampo
+  const weldMinutes = input.temContraventamento ? 35 : 20;
+  const finishMinutes = input.quantidadeCubas > 0 ? 40 : 30;
+  const processes = [
+    { kind: 'cut' as const, description: 'Corte', minutes: 10 },
+    { kind: 'bend' as const, description: 'Dobras', minutes: bends * 4 },
+    { kind: 'weld' as const, description: 'Solda', minutes: weldMinutes },
+    { kind: 'finish' as const, description: 'Acabamento', minutes: finishMinutes },
+    { kind: 'assembly' as const, description: 'Montagem', minutes: 20 },
+  ];
 
-  const custoBase = custoChapa + custoCubas + custoEstrutura + custoAcessorios;
-  const baseResumo = resumoBase(custoBase, params);
+  const result = price(tables, globals, { materials, accessories, processes });
 
+  // Mapeia para o formato antigo para manter compatibilidade temporária
   return {
-    custoChapa,
-    custoEstrutura,
-    custoCubas,
-    custoAcessorios,
-    ...baseResumo,
+    custoChapa: result.material,
+    custoEstrutura: 0, // pode separar filtrando breakdown depois
+    custoCubas: 0,     // idem
+    custoAcessorios: result.accessories,
+    custoMaterial: Math.round((result.material + result.accessories) * 100) / 100,
+    custoProducao: Math.round((result.processes + result.overhead) * 100) / 100,
+    precoFinal: result.sellingPrice,
+    breakdown: result.breakdown,
+    warnings: result.warnings,
   };
 };
 

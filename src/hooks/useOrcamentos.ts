@@ -26,6 +26,26 @@ import { toast } from 'sonner';
 
 type ServiceResult<T> = { success: boolean; data?: T; error?: string };
 
+const LEGACY_STATUS_MAP: Record<string, StatusOrcamento> = {
+  Rascunho: 'Aguardando Aprovacao',
+  Enviado: 'Aguardando Aprovacao',
+  Convertido: 'Aprovado',
+};
+
+const normalizeStatus = (status: unknown): StatusOrcamento => {
+  if (typeof status === 'string' && status in LEGACY_STATUS_MAP) {
+    return LEGACY_STATUS_MAP[status];
+  }
+  return status as StatusOrcamento;
+};
+
+const getLegacyStatusUpdate = (status: unknown): StatusOrcamento | null => {
+  if (typeof status === 'string' && status in LEGACY_STATUS_MAP) {
+    return LEGACY_STATUS_MAP[status];
+  }
+  return null;
+};
+
 interface UseOrcamentosOptions {
   autoLoad?: boolean;
   status?: StatusOrcamento;
@@ -59,6 +79,8 @@ export function useOrcamentos(options: UseOrcamentosOptions = {}) {
 
     return {
       ...orcamento,
+      status: normalizeStatus(orcamento.status),
+      aprovadoEm: toDate((orcamento as Orcamento).aprovadoEm),
       data: toDate(orcamento.data),
       validade: toDate(orcamento.validade),
       createdAt: toDate(orcamento.createdAt),
@@ -94,7 +116,24 @@ export function useOrcamentos(options: UseOrcamentosOptions = {}) {
       });
 
       if (listResult.success && listResult.data) {
-        setOrcamentos(listResult.data.items.map(normalizeOrcamento));
+        const legacyUpdates: Array<{ id: string; status: StatusOrcamento }> = [];
+        const normalizedItems = listResult.data.items.map((item) => {
+          const legacyStatus = getLegacyStatusUpdate((item as { status?: unknown }).status);
+          if (legacyStatus && item.status !== legacyStatus) {
+            legacyUpdates.push({ id: item.id, status: legacyStatus });
+          }
+          return normalizeOrcamento({ ...item, status: legacyStatus ?? item.status } as Orcamento);
+        });
+
+        setOrcamentos(normalizedItems);
+
+        if (!isMock && legacyUpdates.length > 0) {
+          void Promise.allSettled(
+            legacyUpdates.map((update) =>
+              orcamentosService.update(update.id, { status: update.status } as Orcamento)
+            )
+          );
+        }
       } else {
         setError(listResult.error || 'Erro ao carregar orçamentos');
         toast.error(listResult.error || 'Erro ao carregar orçamentos');
@@ -224,7 +263,7 @@ export function useOrcamentos(options: UseOrcamentosOptions = {}) {
 
   // Aprovar orçamento
   const aprovarOrcamento = async (id: string): Promise<ServiceResult<Orcamento>> => {
-    return updateOrcamento(id, { status: 'Aprovado' });
+    return updateOrcamento(id, { status: 'Aprovado', aprovadoEm: new Date() });
   };
 
   // Rejeitar orçamento
@@ -269,11 +308,11 @@ export function useOrcamentos(options: UseOrcamentosOptions = {}) {
         const items = response.items.map(normalizeOrcamento);
         return {
           total: items.length,
-          rascunhos: items.filter((o) => o.status === 'Rascunho').length,
-          enviados: items.filter((o) => o.status === 'Enviado').length,
+          rascunhos: items.filter((o) => o.status === 'Aguardando Aprovacao').length,
+          enviados: 0,
           aprovados: items.filter((o) => o.status === 'Aprovado').length,
           rejeitados: items.filter((o) => o.status === 'Rejeitado').length,
-          convertidos: items.filter((o) => o.status === 'Convertido').length,
+          convertidos: items.filter((o) => !!o.ordemId).length,
           valorTotal: items.reduce((acc, o) => acc + o.total, 0),
         };
       }
@@ -282,11 +321,11 @@ export function useOrcamentos(options: UseOrcamentosOptions = {}) {
       const items = list.success && list.data ? list.data.items.map(normalizeOrcamento) : [];
       return {
         total: items.length,
-        rascunhos: items.filter((o) => o.status === 'Rascunho').length,
-        enviados: items.filter((o) => o.status === 'Enviado').length,
+        rascunhos: items.filter((o) => o.status === 'Aguardando Aprovacao').length,
+        enviados: 0,
         aprovados: items.filter((o) => o.status === 'Aprovado').length,
         rejeitados: items.filter((o) => o.status === 'Rejeitado').length,
-        convertidos: items.filter((o) => o.status === 'Convertido').length,
+        convertidos: items.filter((o) => !!o.ordemId).length,
         valorTotal: items.reduce((acc, o) => acc + o.total, 0),
       };
     } catch (err) {
