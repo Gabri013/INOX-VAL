@@ -646,8 +646,8 @@ service cloud.firestore {
       allow read, write: if isDev();
     }
     
-    match /{document=**} {
-      allow read, write: if false;
-    }
+    // match /{document=**} {
+    //   allow read, write: if false;
+    // }
   }
 }
