@@ -107,6 +107,32 @@ export abstract class BaseFirestoreService<T extends FirebaseDocument> {
     return { ...data, ...metadata };
   }
 
+  private sanitizeFirestoreData(value: unknown): unknown {
+    if (value === undefined) return null;
+    if (value === null) return null;
+    if (value instanceof Date) return value;
+    if (Array.isArray(value)) {
+      return value.map((item) => this.sanitizeFirestoreData(item));
+    }
+    if (typeof value === 'object') {
+      const tag = Object.prototype.toString.call(value);
+      if (tag !== '[object Object]') {
+        return value;
+      }
+      const cleaned: Record<string, unknown> = {};
+      Object.entries(value as Record<string, unknown>).forEach(([key, item]) => {
+        if (item === undefined) return;
+        cleaned[key] = this.sanitizeFirestoreData(item);
+      });
+      return cleaned;
+    }
+    return value;
+  }
+
+  protected cleanFirestoreData<TValue>(data: TValue): TValue {
+    return this.sanitizeFirestoreData(data) as TValue;
+  }
+
   /**
    * Converte Timestamp do Firestore para Date
    */
@@ -242,7 +268,7 @@ export abstract class BaseFirestoreService<T extends FirebaseDocument> {
         return validation as ServiceResult<T>;
       }
 
-      const docData = this.addMetadata(data as Partial<T>, false);
+      const docData = this.cleanFirestoreData(this.addMetadata(data as Partial<T>, false));
       const docRef = await addDoc(collection(this.db, this.collectionName), docData);
 
       // Buscar documento criado para retornar com timestamps convertidos
@@ -275,7 +301,7 @@ export abstract class BaseFirestoreService<T extends FirebaseDocument> {
       }
 
       const docRef = doc(this.db, this.collectionName, id);
-      const docData = this.addMetadata(data as Partial<T>, true);
+      const docData = this.cleanFirestoreData(this.addMetadata(data as Partial<T>, true));
 
       // Remover campos que não devem ser atualizados
       delete (docData as any).id;

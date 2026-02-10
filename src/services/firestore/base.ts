@@ -140,6 +140,32 @@ export abstract class FirestoreService<T extends Record<string, any>> {
     };
   }
 
+  private sanitizeFirestoreData(value: unknown): unknown {
+    if (value === undefined) return null;
+    if (value === null) return null;
+    if (value instanceof Date) return value;
+    if (Array.isArray(value)) {
+      return value.map((item) => this.sanitizeFirestoreData(item));
+    }
+    if (typeof value === "object") {
+      const tag = Object.prototype.toString.call(value);
+      if (tag !== "[object Object]") {
+        return value;
+      }
+      const cleaned: Record<string, unknown> = {};
+      Object.entries(value as Record<string, unknown>).forEach(([key, item]) => {
+        if (item === undefined) return;
+        cleaned[key] = this.sanitizeFirestoreData(item);
+      });
+      return cleaned;
+    }
+    return value;
+  }
+
+  protected cleanFirestoreData<TValue>(data: TValue): TValue {
+    return this.sanitizeFirestoreData(data) as TValue;
+  }
+
   async list(params: ListParams = {}): Promise<ServiceResult<ListResult<T>>> {
     try {
       const empresaId = await getEmpresaId();
@@ -240,7 +266,7 @@ export abstract class FirestoreService<T extends Record<string, any>> {
 
   async create(data: Omit<T, "id">): Promise<ServiceResult<T>> {
     try {
-      const payload = await this.withMetadata(data as Partial<T>, false);
+      const payload = this.cleanFirestoreData(await this.withMetadata(data as Partial<T>, false));
       const ref = await addDoc(collection(db, this.collectionName), payload);
       const created = await this.getById(ref.id);
       if (created.success && created.data) {
@@ -264,7 +290,7 @@ export abstract class FirestoreService<T extends Record<string, any>> {
     try {
       const existing = await this.getById(id);
       if (!existing.success || !existing.data) return { success: false, error: existing.error };
-      const payload = await this.withMetadata(data as Partial<T>, true);
+      const payload = this.cleanFirestoreData(await this.withMetadata(data as Partial<T>, true));
       const ref = doc(db, this.collectionName, id);
       await updateDoc(ref, payload as DocumentData);
       const updated = await this.getById(id);

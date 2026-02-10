@@ -55,6 +55,23 @@ export default function ClienteDetail() {
     'Inativo': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100',
     'Bloqueado': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
   };
+  const formatDateLong = (value: unknown) => {
+    if (!value) return '-';
+    let date: Date | undefined;
+    if (value instanceof Date) {
+      date = value;
+    } else if (typeof value === 'object' && value && 'toDate' in value) {
+      try {
+        date = (value as { toDate: () => Date }).toDate();
+      } catch {
+        date = undefined;
+      }
+    } else {
+      date = new Date(value as any);
+    }
+    if (!date || Number.isNaN(date.getTime())) return '-';
+    return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+  };
 
   return (
     <div className="space-y-6">
@@ -151,14 +168,14 @@ export default function ClienteDetail() {
             <div>
               <p className="text-sm text-muted-foreground">Cadastrado em</p>
               <p className="font-medium">
-                {format(new Date(cliente.criadoEm), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                {formatDateLong(cliente.criadoEm)}
               </p>
             </div>
 
             <div>
               <p className="text-sm text-muted-foreground">Última atualização</p>
               <p className="font-medium">
-                {format(new Date(cliente.atualizadoEm), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                {formatDateLong(cliente.atualizadoEm)}
               </p>
             </div>
 
