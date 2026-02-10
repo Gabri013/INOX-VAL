@@ -219,7 +219,14 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
               <FormField label="Prateleira Inferior">
                 <select
                   value={formData.tipoPrateleiraInferior || "nenhuma"}
-                  onChange={(e) => update("tipoPrateleiraInferior", e.target.value)}
+                  onChange={(e) => {
+                    update("tipoPrateleiraInferior", e.target.value);
+                    // Se selecionar prateleira, desativa contraventamento e mão francesa
+                    if (e.target.value !== "nenhuma") {
+                      update("temContraventamento", false);
+                      update("usarMaoFrancesa", false);
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="nenhuma">Nenhuma</option>
@@ -237,7 +244,13 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
               <input
                 type="checkbox"
                 checked={formData.temContraventamento || false}
-                onChange={(e) => update("temContraventamento", e.target.checked)}
+                disabled={formData.tipoPrateleiraInferior !== "nenhuma" || formData.usarMaoFrancesa}
+                onChange={(e) => {
+                  update("temContraventamento", e.target.checked);
+                  if (e.target.checked) {
+                    update("usarMaoFrancesa", false);
+                  }
+                }}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
               />
               <span className="text-sm text-gray-700">Contraventamento</span>
@@ -247,7 +260,13 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
               <input
                 type="checkbox"
                 checked={formData.usarMaoFrancesa || false}
-                onChange={(e) => update("usarMaoFrancesa", e.target.checked)}
+                disabled={formData.tipoPrateleiraInferior !== "nenhuma" || formData.temContraventamento}
+                onChange={(e) => {
+                  update("usarMaoFrancesa", e.target.checked);
+                  if (e.target.checked) {
+                    update("temContraventamento", false);
+                  }
+                }}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
               />
               <span className="text-sm text-gray-700">Usar Mão Francesa</span>

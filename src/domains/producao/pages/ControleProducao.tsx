@@ -2,7 +2,7 @@
  * Controle de Produção - Interface para operadores no chão de fábrica
  */
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
@@ -70,6 +70,8 @@ export default function ControleProducao() {
   const [showMovimentacao, setShowMovimentacao] = useState(false);
   const [observacoes, setObservacoes] = useState('');
   const [syncing, setSyncing] = useState(false);
+  const syncIntervalRef = useRef<number | null>(null);
+  const syncingRef = useRef(false);
 
   const { data: itens, isLoading, isError, error } = useItensSetor(setorSelecionado);
   const moverItemMutation = useMoverItem();
@@ -119,6 +121,8 @@ export default function ControleProducao() {
   };
 
   const handleSyncOrdens = async () => {
+    if (syncingRef.current) return;
+    syncingRef.current = true;
     setSyncing(true);
     try {
       const result = await ordensService.list({ limit: 2000 });
@@ -145,8 +149,23 @@ export default function ControleProducao() {
       );
     } finally {
       setSyncing(false);
+      syncingRef.current = false;
     }
   };
+
+  // Sincroniza automaticamente as OPs (cria itens se faltarem)
+  // e mantém a tela sempre atualizada.
+  useEffect(() => {
+    handleSyncOrdens();
+    syncIntervalRef.current = window.setInterval(() => {
+      handleSyncOrdens();
+    }, 60000);
+    return () => {
+      if (syncIntervalRef.current) {
+        window.clearInterval(syncIntervalRef.current);
+      }
+    };
+  }, []);
 
   if (isError) {
     const view = toFirestoreErrorView(error);
