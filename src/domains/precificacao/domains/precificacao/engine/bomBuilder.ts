@@ -114,6 +114,21 @@ export function buildBOM_Bancadas(
   input: BancadasInput,
   orcamentoTipo: "somenteTampo" | "somenteCuba" | "bancadaSemCuba" | "bancadaComCuba"
 ): BuiltBOM {
+  // DEBUG: logar input recebido
+  console.log('[BOM] input recebido:', JSON.stringify(input));
+  // Conversão defensiva dos campos de estrutura
+  input.quantidadePes = Number(input.quantidadePes);
+  input.alturaPes = Number(input.alturaPes);
+  const tuboValido = ["tuboRedondo", "tuboQuadrado", "tuboRetangular"].includes(input.tipoTuboPes);
+
+  // Validação mínima de dimensões
+  if (input.comprimento < 300 || input.largura < 300 || input.espessuraChapa <= 0) {
+    throw new Error("Preencha dimensões realistas: comprimento e largura mínimos de 300mm e espessura maior que zero.");
+  }
+  // Validação defensiva para campos essenciais de estrutura
+  if (!input.alturaPes || !input.quantidadePes || !tuboValido) {
+    throw new Error("Preencha todos os campos de estrutura: quantidade de pés, tipo e altura dos pés.");
+  }
   const sheetParts: SheetPartRect[] = [];
   const tubeParts: TubePart[] = [];
   const accessories: AccessoryPart[] = [];
@@ -186,8 +201,9 @@ export function buildBOM_Bancadas(
   });
 
   // acessórios comuns
-  accessories.push({ sku: "peNivelador", description: "Pé nivelador", qty: qtdPes });
-  if (input.usarMaoFrancesa) accessories.push({ sku: "maoFrancesa", description: "Mão francesa", qty: 2 });
+  // Sempre adicionar sapata niveladora
+  accessories.push({ sku: "pe_nivelador_un", description: "Pé nivelador", qty: qtdPes });
+  if (input.usarMaoFrancesa) accessories.push({ sku: "kit_fixacao_un", description: "Kit fixação (mão francesa)", qty: 1 });
 
   // 1.6 Bancada com cuba (somente se tiver dimensões da cuba)
   if (orcamentoTipo === "bancadaComCuba") {
@@ -260,12 +276,12 @@ export function buildBOM_Lavatorios(input: LavatoriosInput): BuiltBOM {
   sheetParts.push({ id: "lavatorio_tampo", w: L, h: W, qty: 1, thicknessMm: t, family: "lavatorio" });
 
   // acessórios hidráulicos
-  if (input.valvula) accessories.push({ sku: "valvula", description: "Válvula", qty: 1 });
-  if (input.mangueiras) accessories.push({ sku: "mangueira", description: "Mangueira", qty: 1 });
-  if (input.joelho) accessories.push({ sku: "joelho", description: "Joelho", qty: 1 });
-  if (input.pedal) accessories.push({ sku: "pedal", description: "Pedal", qty: 1 });
-  if (input.bicaAlta) accessories.push({ sku: "bicaAlta", description: "Bica alta", qty: 1 });
-  if (input.bicaBaixa) accessories.push({ sku: "bicaBaixa", description: "Bica baixa", qty: 1 });
+  if (input.valvula) accessories.push({ sku: "valvula_un", description: "Válvula", qty: 1 });
+  if (input.mangueiras) accessories.push({ sku: "mangueira_flex_un", description: "Mangueira flexível", qty: 1 });
+  if (input.joelho) accessories.push({ sku: "joelho_1_2_un", description: "Joelho 1/2", qty: 1 });
+  if (input.pedal) accessories.push({ sku: "pedal_un", description: "Pedal", qty: 1 });
+  if (input.bicaAlta) accessories.push({ sku: "bica_alta_un", description: "Bica alta", qty: 1 });
+  if (input.bicaBaixa) accessories.push({ sku: "bica_baixa_un", description: "Bica baixa", qty: 1 });
 
   return { sheetParts, tubeParts, accessories, processes };
 }
@@ -298,7 +314,7 @@ export function buildBOM_Prateleiras(input: PrateleirasInput): BuiltBOM {
     family: "prateleira",
   });
 
-  if (input.usarMaoFrancesa) accessories.push({ sku: "maoFrancesa", description: "Mão francesa", qty: 2 });
+  if (input.usarMaoFrancesa) accessories.push({ sku: "kit_fixacao_un", description: "Kit fixação (mão francesa)", qty: 1 });
 
   return { sheetParts, tubeParts, accessories, processes };
 }
@@ -354,7 +370,8 @@ export function buildBOM_Mesas(input: MesasInput): BuiltBOM {
     family: "estrutura",
   });
 
-  accessories.push({ sku: "peNivelador", description: "Pé nivelador", qty: qtdPes });
+  accessories.push({ sku: "pe_nivelador_un", description: "Pé nivelador", qty: qtdPes });
+  if (input.usarMaoFrancesa) accessories.push({ sku: "kit_fixacao_un", description: "Kit fixação (mão francesa)", qty: 1 });
 
   return { sheetParts, tubeParts, accessories, processes };
 }
@@ -409,6 +426,7 @@ export function buildBOM_EstanteCantoneira(input: EstanteCantoneiraInput): Built
   });
 
   if (input.incluirRodizios) accessories.push({ sku: "rodizio", description: "Rodízio", qty: pes });
+  if (input.incluirRodizios) accessories.push({ sku: "rodizio_un", description: "Rodízio", qty: Math.max(4, pes) });
 
   return { sheetParts, tubeParts, angleParts, accessories, processes };
 }

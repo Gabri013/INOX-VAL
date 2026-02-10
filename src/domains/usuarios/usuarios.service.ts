@@ -87,12 +87,13 @@ class UsuariosService {
       where.push({ field: 'departamento', operator: '==', value: filters.departamento });
     }
 
-    const result = await usuariosFirestore.list({ where, orderBy: [{ field: 'nome', direction: 'asc' }] });
+    const result = await usuariosFirestore.list({ where });
     if (!result.success || !result.data) {
       throw new Error(result.error || 'Erro ao listar usu??rios');
     }
 
     let usuarios = result.data.items.map((item) => mapDocToUsuario(item as any));
+    usuarios.sort((a, b) => a.nome.localeCompare(b.nome));
 
     if (filters?.search) {
       const search = filters.search.toLowerCase();

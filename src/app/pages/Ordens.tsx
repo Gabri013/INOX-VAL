@@ -23,6 +23,7 @@ import { Orcamento, OrdemProducao, StatusOrdem } from "../types/workflow";
 import type { ResultadoCalculadora } from "@/domains/calculadora/types";
 import type { BOMItem } from "@/bom/types";
 import { estoqueItensService, registrarMovimentoEstoque } from "@/services/firestore/estoque.service";
+import OrdemProducaoPDF, { type OrdemProducaoData } from "@/components/OrdemProducaoPDF";
 import {
   Dialog,
   DialogContent,
@@ -43,7 +44,7 @@ export default function Ordens() {
     estoqueItemId?: string;
   };
 
-  const { ordens, iniciarProducao, concluirProducao, updateOrdem } = useOrdens({ autoLoad: true });
+  const { ordens, iniciarProducao, pausarProducao, retomarProducao, concluirProducao, cancelarOrdem, updateOrdem } = useOrdens({ autoLoad: true });
   const { orcamentos } = useOrcamentos({ autoLoad: true });
   const { createCompra } = useCompras({ autoLoad: false });
   const { user } = useAuth();
@@ -120,6 +121,37 @@ export default function Ordens() {
       quantidade: item.quantidade,
       unidade: item.unidade || "un",
     }));
+  };
+
+  const buildPdfData = (ordem: OrdemProducao): OrdemProducaoData => {
+    const orcamento = orcamentos.find((o) => o.id === ordem.orcamentoId);
+    const itens = ordem.itens || [];
+    const itensResumo = itens.map((item, index) => {
+      const qtd = item.quantidade ?? 0;
+      const un = item.unidade || "un";
+      return `${index + 1}. ${item.produtoNome || item.produtoId} (${qtd} ${un})`;
+    });
+
+    const headerLines = [
+      `Cliente: ${ordem.clienteNome || "-"}`,
+      `Orçamento: ${orcamento?.numero || "-"}`,
+      `Status: ${ordem.status}`,
+      `Itens: ${itens.length}`,
+      ...itensResumo,
+    ];
+
+    return {
+      titulo: "ORDEM DE PRODUÇÃO",
+      numero: ordem.numero,
+      numeroLabel: "Nº da OP",
+      headerLines,
+      dataEmissao: formatDateSafe(ordem.dataAbertura),
+      prazo: formatDateSafe(ordem.dataPrevisao),
+      cliente: ordem.clienteNome,
+      observacao: ordem.observacoes || orcamento?.observacoes || "",
+      processos: ["Corte", "Dobra", "Solda", "Acabamento", "Montagem", "Inspeção", "Embalagem"],
+      observacaoFinal: "",
+    };
   };
 
   // Filtros
@@ -268,6 +300,18 @@ export default function Ordens() {
           {statusIcon(ord.status)}
           {ord.status}
         </Badge>
+      )
+    },
+    {
+      key: "pdf",
+      label: "OP (PDF)",
+      render: (ord: OrdemProducao) => (
+        <OrdemProducaoPDF
+          data={buildPdfData(ord)}
+          fileName={`OP-${ord.numero || ord.id}.pdf`}
+          downloadLabel="Baixar"
+          loadingLabel="Gerando..."
+        />
       )
     }
   ];
@@ -433,20 +477,64 @@ export default function Ordens() {
     },
     {
       icon: Play,
-      label: "Iniciar Produção",
+      label: "Iniciar Produ??o",
       onClick: handleIniciarProducao,
       show: (ord: OrdemProducao) => ord.status === "Pendente"
     },
     {
+      icon: Pause,
+      label: "Pausar",
+      onClick: async (ord: OrdemProducao) => {
+        const result = await pausarProducao(ord.id, "Pausa solicitada");
+        if (result.success) {
+          toast.success(`Ordem ${ord.numero} pausada`);
+        } else {
+          toast.error(result.error || "N?o foi poss?vel pausar a ordem");
+        }
+      },
+      show: (ord: OrdemProducao) => ord.status === "Em Produ??o"
+    },
+    {
+      icon: Play,
+      label: "Retomar",
+      onClick: async (ord: OrdemProducao) => {
+        const result = await retomarProducao(ord.id);
+        if (result.success) {
+          toast.success(`Ordem ${ord.numero} retomada`);
+        } else {
+          toast.error(result.error || "N?o foi poss?vel retomar a ordem");
+        }
+      },
+      show: (ord: OrdemProducao) => ord.status === "Pausada"
+    },
+    {
       icon: CheckCircle,
       label: "Concluir",
-      onClick: (ord: OrdemProducao) => {
-        concluirProducao(ord.id);
-        toast.success(`Ordem ${ord.numero} concluída com sucesso`);
+      onClick: async (ord: OrdemProducao) => {
+        const result = await concluirProducao(ord.id);
+        if (result.success) {
+          toast.success(`Ordem ${ord.numero} conclu?da com sucesso`);
+        } else {
+          toast.error(result.error || "N?o foi poss?vel concluir a ordem");
+        }
       },
-      show: (ord: OrdemProducao) => ord.status === "Em Produção"
+      show: (ord: OrdemProducao) => ord.status === "Em Produ??o"
+    },
+    {
+      icon: AlertTriangle,
+      label: "Cancelar",
+      onClick: async (ord: OrdemProducao) => {
+        const result = await cancelarOrdem(ord.id, "Cancelada manualmente");
+        if (result.success) {
+          toast.success(`Ordem ${ord.numero} cancelada`);
+        } else {
+          toast.error(result.error || "N?o foi poss?vel cancelar a ordem");
+        }
+      },
+      show: (ord: OrdemProducao) => ord.status === "Pendente"
     }
   ];
+
 
   // Handlers
   // ❌ REMOVIDO: handleNew - OPs só podem ser criadas via orçamento aprovado

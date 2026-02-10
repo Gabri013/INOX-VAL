@@ -52,6 +52,19 @@ export function QuoteResults({ quote }: QuoteResultsProps) {
         <div className="space-y-2">
           <CostRow label="Chapas" value={quote.costs.sheet} />
           <CostRow label="Tubos" value={quote.costs.tubes} />
+          {/* Detalhamento dos tubos */}
+          {quote.tubeDetails && quote.tubeDetails.length > 0 && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mt-2">
+              <div className="font-semibold text-gray-700 mb-1">Como foi calculado o custo dos tubos:</div>
+              <ul className="text-xs text-gray-700 space-y-1">
+                {quote.tubeDetails.map((t, idx) => (
+                  <li key={idx}>
+                    {t.label}: {t.metros.toFixed(2)} m × {t.kgpm.toFixed(3)} kg/m × R$ {t.precoKg.toFixed(2)} = <b>R$ {t.custo.toFixed(2)}</b>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <CostRow label="Cantoneiras" value={quote.costs.angles} />
           <CostRow label="Acessórios" value={quote.costs.accessories} />
           <CostRow label="Processos" value={quote.costs.processes} />

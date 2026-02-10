@@ -6,6 +6,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { chatService } from '@/services/firestore/chat.service';
+import { useAuth } from '@/contexts/AuthContext';
 import type {
   ChatFilters,
   MensagensFilters,
@@ -31,9 +32,11 @@ export const chatKeys = {
  * Obter lista de usuários do chat
  */
 export function useChatUsuarios(filters?: ChatFilters) {
+  const { user, loading } = useAuth();
   return useQuery({
     queryKey: chatKeys.usuarios(filters),
     queryFn: () => chatService.getUsuarios(filters),
+    enabled: !!user?.uid && !loading,
   });
 }
 
@@ -52,11 +55,13 @@ export function useChatUsuario(id: string) {
  * Obter conversas do usuário
  */
 export function useConversas() {
+  const { user, loading } = useAuth();
   return useQuery({
     queryKey: chatKeys.conversas(),
     queryFn: () => chatService.getConversas(),
     // Refetch a cada 10 segundos para simular tempo real
     refetchInterval: 10000,
+    enabled: !!user?.uid && !loading,
   });
 }
 

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { FormField } from "./FormField";
 
 interface BancadasFormProps {
@@ -5,7 +6,39 @@ interface BancadasFormProps {
   setFormData: (data: any) => void;
 }
 
+
 export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
+    // Garante que campos padrão industriais sempre estão presentes no formData
+    useEffect(() => {
+      const patch: any = {};
+      if (formData.quantidadePes === undefined || formData.quantidadePes === null) patch.quantidadePes = 4;
+      if (formData.alturaPes === undefined) patch.alturaPes = 900;
+      if (formData.espessuraChapa === undefined) patch.espessuraChapa = 1;
+      if (!formData.tipoTuboPes) patch.tipoTuboPes = "tuboRedondo";
+      if (Object.keys(patch).length > 0) setFormData({ ...formData, ...patch });
+    }, [formData]);
+  // Novos campos de configuração
+  const configDefaults = {
+    precoKgInox: 45,
+    precoKgTuboPes: 45,
+    precoKgTuboContraventamento: 45,
+    fatorVenda: 3,
+    scrapMinPct: 15,
+  };
+
+  const [config, setConfig] = useState(() => ({
+    precoKgInox: formData.precoKgInox ?? configDefaults.precoKgInox,
+    precoKgTuboPes: formData.precoKgTuboPes ?? configDefaults.precoKgTuboPes,
+    precoKgTuboContraventamento: formData.precoKgTuboContraventamento ?? configDefaults.precoKgTuboContraventamento,
+    fatorVenda: formData.fatorVenda ?? configDefaults.fatorVenda,
+    scrapMinPct: formData.scrapMinPct ?? configDefaults.scrapMinPct,
+  }));
+
+  // Atualiza formData ao mudar config
+  useEffect(() => {
+    setFormData({ ...formData, ...config });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config]);
 
   // Permite vírgula ou ponto e campo vazio
   const parseInput = (val: string) => {
@@ -31,6 +64,58 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
 
   return (
     <div className="space-y-4">
+      {/* Configuração de Preços e Markup */}
+      <div className="border border-blue-200 bg-blue-50 rounded-lg p-4 mb-4">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Configuração de Preços e Markup</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <FormField label="Preço/kg Inox (R$)" required>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={config.precoKgInox === 0 ? "" : config.precoKgInox ?? ""}
+              onChange={e => setConfig(c => ({ ...c, precoKgInox: parseInput(e.target.value) }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </FormField>
+          <FormField label="Preço/kg Tubo dos Pés (R$)" required>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={config.precoKgTuboPes === 0 ? "" : config.precoKgTuboPes ?? ""}
+              onChange={e => setConfig(c => ({ ...c, precoKgTuboPes: parseInput(e.target.value) }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </FormField>
+          <FormField label="Preço/kg Tubo Contraventamento (R$)" required>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={config.precoKgTuboContraventamento === 0 ? "" : config.precoKgTuboContraventamento ?? ""}
+              onChange={e => setConfig(c => ({ ...c, precoKgTuboContraventamento: parseInput(e.target.value) }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </FormField>
+          <FormField label="Fator de Venda (Markup)" required>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={config.fatorVenda === 0 ? "" : config.fatorVenda ?? ""}
+              onChange={e => setConfig(c => ({ ...c, fatorVenda: parseInput(e.target.value) }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </FormField>
+          <FormField label="Desperdício Mínimo (%)" required>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={config.scrapMinPct === 0 ? "" : config.scrapMinPct ?? ""}
+              onChange={e => setConfig(c => ({ ...c, scrapMinPct: parseInput(e.target.value) }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </FormField>
+        </div>
+        <div className="text-xs text-gray-600 mt-2">Esses valores são usados apenas neste orçamento.</div>
+      </div>
       {/* Tipo de Orçamento */}
       <FormField label="Tipo de Orçamento" required>
         <select
@@ -184,26 +269,23 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
             <div className="grid grid-cols-2 gap-4">
               <FormField label="Quantidade de Pés" required>
                 <select
-                  value={formData.quantidadePes || 4}
+                  value={formData.quantidadePes ?? 4}
                   onChange={(e) => update("quantidadePes", Number(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value={4}>4</option>
-                  <option value={5}>5</option>
                   <option value={6}>6</option>
-                  <option value={7}>7</option>
                 </select>
               </FormField>
 
               <FormField label="Tipo de Tubo dos Pés">
                 <select
-                  value={formData.tipoTuboPes || "tuboQuadrado"}
+                  value={formData.tipoTuboPes || "tuboRedondo"}
                   onChange={(e) => update("tipoTuboPes", e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled
                 >
-                  <option value="tuboRedondo">Tubo Redondo</option>
-                  <option value="tuboQuadrado">Tubo Quadrado</option>
-                  <option value="tuboRetangular">Tubo Retangular</option>
+                  <option value="tuboRedondo">Tubo Redondo 38,1</option>
                 </select>
               </FormField>
 
@@ -216,62 +298,53 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
                 />
               </FormField>
 
-              <FormField label="Prateleira Inferior">
-                <select
-                  value={formData.tipoPrateleiraInferior || "nenhuma"}
-                  onChange={(e) => {
-                    update("tipoPrateleiraInferior", e.target.value);
-                    // Se selecionar prateleira, desativa contraventamento e mão francesa
-                    if (e.target.value !== "nenhuma") {
-                      update("temContraventamento", false);
-                      update("usarMaoFrancesa", false);
-                    }
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="nenhuma">Nenhuma</option>
-                  <option value="lisa">Lisa</option>
-                  <option value="gradeada">Gradeada</option>
-                  <option value="perfurada">Perfurada</option>
-                </select>
+              <FormField label="Opção de Estrutura">
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="estruturaOption"
+                      checked={formData.tipoPrateleiraInferior !== "nenhuma"}
+                      onChange={() => {
+                        update("tipoPrateleiraInferior", "lisa");
+                        update("temContraventamento", false);
+                        update("usarMaoFrancesa", false);
+                      }}
+                    />
+                    <span className="text-sm text-gray-700">Prateleira Inferior</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="estruturaOption"
+                      checked={formData.temContraventamento}
+                      onChange={() => {
+                        update("tipoPrateleiraInferior", "nenhuma");
+                        update("temContraventamento", true);
+                        update("usarMaoFrancesa", false);
+                      }}
+                    />
+                    <span className="text-sm text-gray-700">Contraventamento</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="estruturaOption"
+                      checked={formData.usarMaoFrancesa}
+                      onChange={() => {
+                        update("tipoPrateleiraInferior", "nenhuma");
+                        update("temContraventamento", false);
+                        update("usarMaoFrancesa", true);
+                      }}
+                    />
+                    <span className="text-sm text-gray-700">Usar Mão Francesa</span>
+                  </label>
+                </div>
               </FormField>
             </div>
           </div>
 
-          {/* Opções */}
-          <div className="space-y-2">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.temContraventamento || false}
-                disabled={formData.tipoPrateleiraInferior !== "nenhuma" || formData.usarMaoFrancesa}
-                onChange={(e) => {
-                  update("temContraventamento", e.target.checked);
-                  if (e.target.checked) {
-                    update("usarMaoFrancesa", false);
-                  }
-                }}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Contraventamento</span>
-            </label>
 
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.usarMaoFrancesa || false}
-                disabled={formData.tipoPrateleiraInferior !== "nenhuma" || formData.temContraventamento}
-                onChange={(e) => {
-                  update("usarMaoFrancesa", e.target.checked);
-                  if (e.target.checked) {
-                    update("temContraventamento", false);
-                  }
-                }}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Usar Mão Francesa</span>
-            </label>
-          </div>
         </>
       )}
 

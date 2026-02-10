@@ -383,8 +383,15 @@ export function useOrdens(options: UseOrdensOptions = {}) {
     }
   };
 
-  // Iniciar produção
+  const getOrdemByIdLocal = (id: string) => ordens.find((ordem) => ordem.id === id);
+
+  // Iniciar producao
   const iniciarProducao = async (id: string, operadorNome: string): Promise<ServiceResult<OrdemProducao>> => {
+    const ordem = getOrdemByIdLocal(id);
+    if (ordem && ordem.status !== 'Pendente') {
+      return { success: false, error: 'Apenas ordens pendentes podem iniciar produção' };
+    }
+
     return updateOrdem(id, {
       status: 'Em Produção',
       apontamento: {
@@ -397,18 +404,30 @@ export function useOrdens(options: UseOrdensOptions = {}) {
     });
   };
 
-  // Pausar produção
+  // Pausar producao
   const pausarProducao = async (id: string, motivo?: string): Promise<ServiceResult<OrdemProducao>> => {
+    const ordem = getOrdemByIdLocal(id);
+    if (ordem && ordem.status !== 'Em Produção') {
+      return { success: false, error: 'Apenas ordens em produção podem ser pausadas' };
+    }
     return updateOrdem(id, { status: 'Pausada', observacoes: motivo });
   };
 
-  // Retomar produção
+  // Retomar producao
   const retomarProducao = async (id: string): Promise<ServiceResult<OrdemProducao>> => {
+    const ordem = getOrdemByIdLocal(id);
+    if (ordem && ordem.status !== 'Pausada') {
+      return { success: false, error: 'Apenas ordens pausadas podem ser retomadas' };
+    }
     return updateOrdem(id, { status: 'Em Produção' });
   };
 
-  // Concluir produção
+  // Concluir producao
   const concluirProducao = async (id: string): Promise<ServiceResult<OrdemProducao>> => {
+    const ordem = getOrdemByIdLocal(id);
+    if (ordem && ordem.status !== 'Em Produção') {
+      return { success: false, error: 'Apenas ordens em produção podem ser concluidas' };
+    }
     return updateOrdem(id, { status: 'Concluída', dataConclusao: new Date() });
   };
 

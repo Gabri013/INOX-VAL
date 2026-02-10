@@ -57,25 +57,51 @@ export const DEFAULT_ANGLE_KG_PER_METER: Record<string, number> = {
   Use os mesmos SKUs que você colocou no builder.
 */
 export const DEFAULT_ACCESSORY_UNIT_PRICE: Record<string, number> = {
-  peNivelador: 12, // valor real sugerido
-  maoFrancesa: 35, // valor real sugerido
-  rodizio: 0,
-  valvula: 0,
-  mangueira: 0,
-  joelho: 0,
-  pedal: 0,
-  bicaAlta: 0,
-  bicaBaixa: 0,
-  mdf: 0,
+  // Lavatórios (hidráulica)
+  valvula_un: 45, // un
+  mangueira_flex_un: 18, // un
+  joelho_1_2_un: 7, // un
+  pedal_un: 60, // un
+  bica_alta_un: 80, // un
+  bica_baixa_un: 60, // un
+
+  // Estante Cantoneira / Estante Tubo
+  pe_nivelador_un: 12, // un
+  rodizio_un: 35, // un
+  kit_fixacao_un: 10, // un
+  ponteira_plastica_un: 2, // un
+
+  // Coifas
+  duto_m: 90, // m
+  curva_duto_un: 35, // un
+  chapeu_un: 40, // un
+  instalacao_un: 300, // un (serviço)
+
+  // Serviços globais
+  servico_corte_m: 8, // m
+  servico_dobra_un: 12, // un
+
+  // Material Redondo (repuxo)
+  setup_repuxo_un: 120, // un
+  servico_repuxo_un: 40, // un
+  overhead_repuxo_pct: 0, // pct (percentual, se usar)
+
+  // Portas e Batentes
+  dobradica_un: 9, // un
+  puxador_un: 25, // un
+  fechadura_un: 30, // un
+  vedacao_m: 6, // m
+  // kit_fixacao_un já incluso acima
 };
 
 /*
   Função que monta as tabelas prontas para o motor.
   Você passa o preço/kg (que vem do form) e pode mostrar overhead.
 */
-export function makeDefaultTables(params: { inoxKgPrice: number; overheadPercent?: number }): PricingTables {
+export function makeDefaultTables(params: { inoxKgPrice: number; tubeKgPrice?: number; overheadPercent?: number }): PricingTables {
   return {
     inoxKgPrice: params.inoxKgPrice,
+    tubeKgPrice: params.tubeKgPrice ?? params.inoxKgPrice,
     densityKgPerM3: 7900,
     sheetCatalog: DEFAULT_SHEET_CATALOG,
 

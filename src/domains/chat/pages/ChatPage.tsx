@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Página: Chat Interno
  * Sistema de mensagens em tempo real entre colaboradores
  */
 
-import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Send, Search, MoreVertical, Plus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { MessageCircle, Send, Search, MoreVertical, Plus, Paperclip, Image as ImageIcon } from 'lucide-react';
 import { PageHeader } from '@/shared/components';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -16,6 +16,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from '@/app/components/ui/dialog';
 import {
@@ -32,6 +33,7 @@ import {
   useChatUsuarios,
   useCreateConversa,
   useDeleteConversa,
+  useUpdateStatus,
 } from '../chat.hooks';
 import { useAuth } from '@/contexts/AuthContext';
 import { statusColors, statusLabels } from '../chat.types';
@@ -44,7 +46,13 @@ export default function ChatPage() {
   const [novaMensagem, setNovaMensagem] = useState('');
   const [searchUsuarios, setSearchUsuarios] = useState('');
   const [showNovaConversa, setShowNovaConversa] = useState(false);
+  const [anexoFile, setAnexoFile] = useState<File | null>(null);
+  const [anexoPreview, setAnexoPreview] = useState<string | null>(null);
+  const [anexoError, setAnexoError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<Record<string, string>>({});
+  const idleTimerRef = useRef<number | null>(null);
+  const statusRef = useRef<'online' | 'ausente' | 'offline'>('online');
 
   const { data: conversas = [], isLoading: loadingConversas } = useConversas();
   const { data: mensagens = [], isLoading: loadingMensagens } = useMensagens({
@@ -58,11 +66,53 @@ export default function ChatPage() {
   const marcarLidasMutation = useMarcarTodasLidas();
   const createConversaMutation = useCreateConversa();
   const deleteConversaMutation = useDeleteConversa();
+  const updateStatusMutation = useUpdateStatus();
 
   // Auto-scroll para última mensagem
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [mensagens]);
+
+  // Status automático (online/ausente/offline)
+  useEffect(() => {
+    const setStatus = (status: 'online' | 'ausente' | 'offline') => {
+      if (statusRef.current === status) return;
+      statusRef.current = status;
+      updateStatusMutation.mutate({ status });
+    };
+
+    const markOnline = () => {
+      setStatus('online');
+      if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = window.setTimeout(() => setStatus('ausente'), 5 * 60 * 1000);
+    };
+
+    markOnline();
+
+    const onVisibility = () => {
+      if (document.hidden) {
+        setStatus('ausente');
+      } else {
+        markOnline();
+      }
+    };
+
+    const activityEvents = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+    activityEvents.forEach((evt) => window.addEventListener(evt, markOnline));
+    document.addEventListener('visibilitychange', onVisibility);
+
+    const onBeforeUnload = () => {
+      setStatus('offline');
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+
+    return () => {
+      activityEvents.forEach((evt) => window.removeEventListener(evt, markOnline));
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current);
+    };
+  }, []);
 
   // Marcar mensagens como lidas ao abrir conversa
   useEffect(() => {
@@ -72,20 +122,45 @@ export default function ChatPage() {
   }, [selectedConversa?.id]);
 
   const handleSendMensagem = () => {
-    if (!selectedConversa || !novaMensagem.trim()) return;
+    if (!selectedConversa) return;
+    if (!novaMensagem.trim() && !anexoFile) return;
 
-    sendMutation.mutate(
-      {
-        conversaId: selectedConversa.id,
-        conteudo: novaMensagem.trim(),
-        tipo: 'text',
-      },
-      {
-        onSuccess: () => {
-          setNovaMensagem('');
-        },
+    const send = async () => {
+      let anexoUrl: string | undefined;
+      let anexoNome: string | undefined;
+      let tipo: 'text' | 'image' | 'file' = 'text';
+
+      if (anexoFile) {
+        anexoNome = anexoFile.name;
+        tipo = anexoFile.type.startsWith('image/') ? 'image' : 'file';
+        anexoUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error('Erro ao ler anexo'));
+          reader.readAsDataURL(anexoFile);
+        });
       }
-    );
+
+      sendMutation.mutate(
+        {
+          conversaId: selectedConversa.id,
+          conteudo: novaMensagem.trim() || (anexoNome ? `Arquivo: ${anexoNome}` : ''),
+          tipo,
+          anexoUrl,
+          anexoNome,
+        },
+        {
+          onSuccess: () => {
+            setNovaMensagem('');
+            setAnexoFile(null);
+            setAnexoPreview(null);
+            setAnexoError(null);
+          },
+        }
+      );
+    };
+
+    void send();
   };
 
   const handleIniciarConversa = (participanteId: string) => {
@@ -97,7 +172,6 @@ export default function ChatPage() {
             return;
           }
           setShowNovaConversa(false);
-          // Buscar conversa detalhada
           const conversaDetalhada = conversas.find((c) => c.id === conversa.id);
           if (conversaDetalhada) {
             setSelectedConversa(conversaDetalhada as ConversaDetalhada);
@@ -120,7 +194,14 @@ export default function ChatPage() {
   };
 
   const getParticipante = (conversa: ConversaDetalhada) => {
-    return conversa.participantesDetalhes[0];
+    return conversa.participantesDetalhes[0] || {
+      id: 'unknown',
+      nome: 'Participante',
+      email: '',
+      departamento: '',
+      status: 'offline',
+      ultimaAtividade: '',
+    };
   };
 
   const getIniciais = (nome: string) => {
@@ -133,6 +214,34 @@ export default function ChatPage() {
   };
 
   const totalNaoLidas = conversas.reduce((acc, c) => acc + c.mensagensNaoLidas, 0);
+
+  // Notificações de nova mensagem
+  useEffect(() => {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') {
+      void Notification.requestPermission();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    conversas.forEach((conversa) => {
+      const ultima = conversa.ultimaMensagem;
+      if (!ultima) return;
+      const lastId = lastMessageRef.current[conversa.id];
+      if (lastId && lastId === ultima.id) return;
+      lastMessageRef.current[conversa.id] = ultima.id;
+
+      if (ultima.remetenteId === user.uid) return;
+      if (selectedConversa?.id === conversa.id) return;
+
+      if (Notification.permission === 'granted') {
+        new Notification('Nova mensagem', {
+          body: ultima.conteudo,
+        });
+      }
+    });
+  }, [conversas, selectedConversa?.id, user?.uid]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
@@ -151,6 +260,9 @@ export default function ChatPage() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Iniciar Nova Conversa</DialogTitle>
+                <DialogDescription>
+                  Selecione um colaborador para iniciar uma conversa.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="relative">
@@ -349,6 +461,7 @@ export default function ChatPage() {
                   <div className="space-y-4">
                     {mensagens.map((mensagem) => {
                       const isMine = mensagem.remetenteId === user?.uid;
+                      const isImage = mensagem.tipo === 'image' && mensagem.anexoUrl;
                       return (
                         <div
                           key={mensagem.id}
@@ -361,7 +474,24 @@ export default function ChatPage() {
                                 : 'bg-muted'
                             }`}
                           >
-                            <p className="text-sm">{mensagem.conteudo}</p>
+                            {isImage ? (
+                              <img
+                                src={mensagem.anexoUrl}
+                                alt={mensagem.anexoNome || 'Imagem'}
+                                className="rounded-md max-h-64 mb-2"
+                              />
+                            ) : mensagem.anexoUrl ? (
+                              <a
+                                href={mensagem.anexoUrl}
+                                download={mensagem.anexoNome || 'anexo'}
+                                className="text-sm underline"
+                              >
+                                {mensagem.anexoNome || 'Anexo'}
+                              </a>
+                            ) : null}
+                            {mensagem.conteudo && (
+                              <p className="text-sm mt-1">{mensagem.conteudo}</p>
+                            )}
                             <p
                               className={`text-xs mt-1 ${
                                 isMine
@@ -382,7 +512,48 @@ export default function ChatPage() {
 
               {/* Input de Mensagem */}
               <div className="p-4 border-t">
+                {anexoPreview && (
+                  <div className="mb-2 flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                    <img src={anexoPreview} alt="Prévia" className="h-16 rounded-md" />
+                    <Button variant="ghost" size="sm" onClick={() => { setAnexoFile(null); setAnexoPreview(null); }}>
+                      Remover
+                    </Button>
+                  </div>
+                )}
+                {anexoError && (
+                  <p className="text-xs text-destructive mb-2">{anexoError}</p>
+                )}
                 <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById('chat-anexo')?.click()}
+                  >
+                    <Paperclip className="w-4 h-4" />
+                  </Button>
+                  <input
+                    id="chat-anexo"
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (!file) return;
+                      if (file.size > 2 * 1024 * 1024) {
+                        setAnexoError('Anexo muito grande. Máximo 2MB.');
+                        return;
+                      }
+                      setAnexoError(null);
+                      setAnexoFile(file);
+                      if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = () => setAnexoPreview(String(reader.result));
+                        reader.readAsDataURL(file);
+                      } else {
+                        setAnexoPreview(null);
+                      }
+                    }}
+                  />
                   <Input
                     placeholder="Digite sua mensagem..."
                     value={novaMensagem}
@@ -396,7 +567,7 @@ export default function ChatPage() {
                   />
                   <Button
                     onClick={handleSendMensagem}
-                    disabled={!novaMensagem.trim() || sendMutation.isPending}
+                    disabled={(!novaMensagem.trim() && !anexoFile) || sendMutation.isPending}
                   >
                     <Send className="w-4 h-4" />
                   </Button>

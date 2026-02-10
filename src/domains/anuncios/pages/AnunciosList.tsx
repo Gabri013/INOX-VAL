@@ -3,19 +3,19 @@
  * Gerenciamento de comunicados administrativos
  */
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Megaphone, Filter } from 'lucide-react';
-import { PageHeader, DataTable, FiltersPanel } from '@/shared/components';
-import { Button } from '@/app/components/ui/button';
-import { Badge } from '@/app/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { useAnuncios, useDeleteAnuncio } from '../anuncios.hooks';
-import { usePermissions } from '@/app/hooks/usePermissions';
-import type { Anuncio, AnunciosFilters } from '../anuncios.types';
-import type { DataTableColumn } from '@/shared/components/DataTable';
-import { tipoLabels, tipoColors, statusLabels, statusColors } from '../anuncios.types';
-import { formatDate } from '@/shared/lib/format';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Megaphone, Filter } from "lucide-react";
+import { PageHeader, DataTable, FiltersPanel } from "@/shared/components";
+import { Button } from "@/app/components/ui/button";
+import { Badge } from "@/app/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
+import { useAnuncios, useDeleteAnuncio } from "../anuncios.hooks";
+import { usePermissions } from "@/app/hooks/usePermissions";
+import type { Anuncio, AnunciosFilters } from "../anuncios.types";
+import type { DataTableColumn } from "@/shared/components/DataTable";
+import { tipoLabels, tipoColors, statusLabels, statusColors } from "../anuncios.types";
+import { formatDate } from "@/shared/lib/format";
 
 export default function AnunciosList() {
   const navigate = useNavigate();
@@ -28,20 +28,20 @@ export default function AnunciosList() {
 
   // Apenas admin pode gerenciar anúncios
   if (!isAdmin()) {
-    navigate('/dashboard');
+    navigate("/dashboard");
     return null;
   }
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este anúncio?')) {
+    if (window.confirm("Tem certeza que deseja excluir este anúncio?")) {
       deleteMutation.mutate(id);
     }
   };
 
   const columns: DataTableColumn<Anuncio>[] = [
     {
-      key: 'titulo',
-      label: 'Título',
+      key: "titulo",
+      label: "Título",
       render: (_, anuncio) => (
         <div>
           <div className="font-medium">{anuncio.titulo}</div>
@@ -52,8 +52,8 @@ export default function AnunciosList() {
       ),
     },
     {
-      key: 'tipo',
-      label: 'Tipo',
+      key: "tipo",
+      label: "Tipo",
       render: (_, anuncio) => (
         <Badge className={tipoColors[anuncio.tipo]}>
           {tipoLabels[anuncio.tipo]}
@@ -61,8 +61,8 @@ export default function AnunciosList() {
       ),
     },
     {
-      key: 'status',
-      label: 'Status',
+      key: "status",
+      label: "Status",
       render: (_, anuncio) => (
         <Badge className={statusColors[anuncio.status]}>
           {statusLabels[anuncio.status]}
@@ -70,29 +70,30 @@ export default function AnunciosList() {
       ),
     },
     {
-      key: 'destinatarios',
-      label: 'Destinatários',
+      key: "destinatarios",
+      label: "Destinatários",
       render: (_, anuncio) => {
-        if (anuncio.destinatarios === 'todos') return 'Todos';
-        if (anuncio.destinatarios === 'role') return `Função: ${anuncio.roleAlvo}`;
-        if (anuncio.destinatarios === 'departamento')
+        if (anuncio.destinatarios === "todos") return "Todos";
+        if (anuncio.destinatarios === "role") return `Função: ${anuncio.roleAlvo}`;
+        if (anuncio.destinatarios === "departamento") {
           return `Depto: ${anuncio.departamentoAlvo}`;
-        return '-';
+        }
+        return "-";
       },
     },
     {
-      key: 'autorNome',
-      label: 'Autor',
+      key: "autorNome",
+      label: "Autor",
     },
     {
-      key: 'criadoEm',
-      label: 'Criado em',
+      key: "criadoEm",
+      label: "Criado em",
       render: (value) => formatDate(value),
     },
     {
-      key: 'actions',
-      label: 'Ações',
-      align: 'right',
+      key: "actions",
+      label: "Ações",
+      align: "right",
       render: (_, anuncio) => (
         <div className="flex gap-2 justify-end">
           <Button
@@ -136,7 +137,7 @@ export default function AnunciosList() {
               <Filter className="w-4 h-4 mr-2" />
               Filtros
             </Button>
-            <Button size="sm" onClick={() => navigate('/anuncios/novo')}>
+            <Button size="sm" onClick={() => navigate("/anuncios/novo")}>
               <Plus className="w-4 h-4 mr-2" />
               Novo Anúncio
             </Button>
@@ -150,7 +151,7 @@ export default function AnunciosList() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Tipo</label>
               <Select
-                value={filters.tipo || ''}
+                value={filters.tipo || ""}
                 onValueChange={(value) =>
                   setFilters({ ...filters, tipo: (value as any) || undefined })
                 }
@@ -171,7 +172,7 @@ export default function AnunciosList() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Status</label>
               <Select
-                value={filters.status || ''}
+                value={filters.status || ""}
                 onValueChange={(value) =>
                   setFilters({ ...filters, status: (value as any) || undefined })
                 }

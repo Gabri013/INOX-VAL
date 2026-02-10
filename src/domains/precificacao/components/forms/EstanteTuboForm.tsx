@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import { FormField } from "./FormField";
 
 interface EstanteTuboFormProps {
@@ -27,6 +28,13 @@ export function EstanteTuboForm({ formData, setFormData }: EstanteTuboFormProps)
         </FormField>
         <FormField label="Quantidade de Pés" required>
           <input type="number" value={formData.quantidadePes || ""} onChange={(e) => update("quantidadePes", Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+        </FormField>
+        <FormField label="Tipo de Tubo dos Pés" required>
+          <select value={formData.tipoTuboPes || "tuboRedondo"} onChange={e => update("tipoTuboPes", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <option value="tuboRedondo">Tubo Redondo</option>
+            <option value="tuboQuadrado">Tubo Quadrado</option>
+            <option value="tuboRetangular">Tubo Retangular</option>
+          </select>
         </FormField>
         <FormField label="Tipo Prateleira">
           <select value={formData.tipoPrateleira || "lisa"} onChange={(e) => update("tipoPrateleira", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">

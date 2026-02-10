@@ -3,14 +3,16 @@
 interface ConfigPanelProps {
   precoKgInox: number;
   setPrecoKgInox: (value: number) => void;
+  precoKgTuboPes: number;
+  setPrecoKgTuboPes: (value: number) => void;
+  precoKgTuboContraventamento: number;
+  setPrecoKgTuboContraventamento: (value: number) => void;
   fatorVenda: number;
   setFatorVenda: (value: number) => void;
   sheetMode: "auto" | "manual";
   setSheetMode: (value: "auto" | "manual") => void;
   sheetSelected: string;
   setSheetSelected: (value: string) => void;
-  sheetCostMode: "bought" | "used";
-  setSheetCostMode: (value: "bought" | "used") => void;
   scrapMinPct: number;
   setScrapMinPct: (value: number) => void;
 }
@@ -18,13 +20,16 @@ interface ConfigPanelProps {
 export function ConfigPanel({
   precoKgInox,
   setPrecoKgInox,
+  precoKgTuboPes,
+  setPrecoKgTuboPes,
+  precoKgTuboContraventamento,
+  setPrecoKgTuboContraventamento,
   fatorVenda,
   setFatorVenda,
   sheetMode,
   setSheetMode,
   sheetSelected,
   setSheetSelected,
-  // sheetCostMode removido, agora é automático
   scrapMinPct,
   setScrapMinPct,
 }: ConfigPanelProps) {
@@ -39,7 +44,7 @@ export function ConfigPanel({
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Configurações Globais</h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Preço/kg Inox (R$)
@@ -52,7 +57,30 @@ export function ConfigPanel({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
-
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Preço/kg Tubo dos Pés (R$)
+          </label>
+          <input
+            type="text"
+            inputMode="decimal"
+            value={precoKgTuboPes === 0 ? "" : precoKgTuboPes ?? ""}
+            onChange={(e) => setPrecoKgTuboPes(parseInput(e.target.value))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Preço/kg Tubo Contraventamento (R$)
+          </label>
+          <input
+            type="text"
+            inputMode="decimal"
+            value={precoKgTuboContraventamento === 0 ? "" : precoKgTuboContraventamento ?? ""}
+            onChange={(e) => setPrecoKgTuboContraventamento(parseInput(e.target.value))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Fator de Venda (Markup)

@@ -241,7 +241,7 @@ export default function Orcamentos() {
         setFormKey((prev) => prev + 1);
         setShowFormulario(true);
       },
-      show: (orc: Orcamento) => !orc.ordemId,
+      show: (orc: Orcamento) => orc.status !== "Aprovado" && !orc.ordemId,
     },
     {
       icon: CheckCircle,

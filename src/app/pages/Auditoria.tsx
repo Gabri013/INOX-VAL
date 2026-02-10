@@ -19,7 +19,7 @@ const actionIcons: Record<AuditActionType, any> = {
   delete: Trash2,
   view: Eye,
   export: FileDown,
-  import: FileUp
+  import: FileUp,
 };
 
 const actionColors: Record<AuditActionType, string> = {
@@ -28,7 +28,7 @@ const actionColors: Record<AuditActionType, string> = {
   delete: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
   view: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
   export: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
-  import: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+  import: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
 };
 
 const actionLabels: Record<AuditActionType, string> = {
@@ -37,7 +37,7 @@ const actionLabels: Record<AuditActionType, string> = {
   delete: "Exclusão",
   view: "Visualização",
   export: "Exportação",
-  import: "Importação"
+  import: "Importação",
 };
 
 const moduleLabels: Record<AuditModule, string> = {
@@ -49,7 +49,7 @@ const moduleLabels: Record<AuditModule, string> = {
   compras: "Compras",
   calculadora: "Calculadora BOM",
   dashboard: "Dashboard",
-  system: "Sistema"
+  system: "Sistema",
 };
 
 export default function Auditoria() {
@@ -62,85 +62,85 @@ export default function Auditoria() {
   const filteredLogs = getLogs({
     action: actionFilter !== "all" ? actionFilter : undefined,
     module: moduleFilter !== "all" ? moduleFilter : undefined,
-    searchTerm: searchTerm || undefined
+    searchTerm: searchTerm || undefined,
   });
 
   // Estatísticas
   const stats = {
     total: logs.length,
-    today: logs.filter(log => {
+    today: logs.filter((log) => {
       const today = new Date();
       return format(log.timestamp, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
     }).length,
-    creates: logs.filter(log => log.action === "create").length,
-    updates: logs.filter(log => log.action === "update").length,
-    deletes: logs.filter(log => log.action === "delete").length
+    creates: logs.filter((log) => log.action === "create").length,
+    updates: logs.filter((log) => log.action === "update").length,
+    deletes: logs.filter((log) => log.action === "delete").length,
   };
 
   const statsData = [
     {
       title: "Total de Logs",
       value: stats.total,
-      description: "Registros totais"
+      description: "Registros totais",
     },
     {
       title: "Hoje",
       value: stats.today,
       description: "Ações registradas",
-      className: "border-blue-200 dark:border-blue-800"
+      className: "border-blue-200 dark:border-blue-800",
     },
     {
       title: "Criações",
       value: stats.creates,
       description: "Novos registros",
-      className: "border-green-200 dark:border-green-800"
+      className: "border-green-200 dark:border-green-800",
     },
     {
       title: "Edições",
       value: stats.updates,
       description: "Atualizações",
-      className: "border-blue-200 dark:border-blue-800"
+      className: "border-blue-200 dark:border-blue-800",
     },
     {
       title: "Exclusões",
       value: stats.deletes,
       description: "Registros excluídos",
-      className: "border-red-200 dark:border-red-800"
-    }
+      className: "border-red-200 dark:border-red-800",
+    },
   ];
 
   // Colunas da tabela
   const columns = [
     {
-      key: 'timestamp',
-      label: 'Data/Hora',
+      key: "timestamp",
+      label: "Data/Hora",
       sortable: true,
     },
     {
-      key: 'userName',
-      label: 'Usuário',
+      key: "userName",
+      label: "Usuário",
       sortable: true,
     },
     {
-      key: 'action',
-      label: 'Ação',
+      key: "action",
+      label: "Ação",
       sortable: true,
-      align: 'center' as const,
+      align: "center" as const,
     },
     {
-      key: 'module',
-      label: 'Módulo',
+      key: "module",
+      label: "Módulo",
       sortable: true,
-      align: 'center' as const,
+      align: "center" as const,
     },
     {
-      key: 'description',
-      label: 'Descrição',
+      key: "description",
+      label: "Descrição",
       sortable: false,
     },
     {
-      key: 'recordName',
-      label: 'Registro',
+      key: "recordName",
+      label: "Registro",
       sortable: false,
     },
   ];
@@ -148,7 +148,7 @@ export default function Auditoria() {
   // Renderizar célula customizada
   const renderCell = (log: any, columnKey: string) => {
     switch (columnKey) {
-      case 'timestamp':
+      case "timestamp":
         return (
           <div>
             <div className="text-sm font-medium">
@@ -159,16 +159,16 @@ export default function Auditoria() {
             </div>
           </div>
         );
-      
-      case 'userName':
+
+      case "userName":
         return (
           <div>
             <p className="font-medium text-sm">{log.userName}</p>
             <p className="text-xs text-muted-foreground">{log.userRole}</p>
           </div>
         );
-      
-      case 'action':
+
+      case "action": {
         const Icon = actionIcons[log.action as AuditActionType];
         return (
           <Badge className={`gap-1 ${actionColors[log.action as AuditActionType]}`}>
@@ -176,14 +176,15 @@ export default function Auditoria() {
             {actionLabels[log.action as AuditActionType]}
           </Badge>
         );
-      
-      case 'module':
+      }
+
+      case "module":
         return <Badge variant="outline">{moduleLabels[log.module as AuditModule]}</Badge>;
-      
-      case 'description':
+
+      case "description":
         return <p className="text-sm truncate max-w-xs">{log.description}</p>;
-      
-      case 'recordName':
+
+      case "recordName":
         if (!log.recordName) return null;
         return (
           <div className="text-sm">
@@ -195,7 +196,7 @@ export default function Auditoria() {
             )}
           </div>
         );
-      
+
       default:
         return log[columnKey];
     }
@@ -205,7 +206,7 @@ export default function Auditoria() {
     <ListPage
       breadcrumbs={[
         { label: "Dashboard", href: "/" },
-        { label: "Auditoria" }
+        { label: "Auditoria" },
       ]}
       title="Auditoria"
       description="Registro completo de ações do sistema"
@@ -253,7 +254,7 @@ export default function Auditoria() {
       renderCell={renderCell}
       emptyMessage="Nenhum log encontrado"
       showPagination={false}
-      keyExtractor={(log: any) => `${log.id || log.timestamp}-${log.recordId || ''}`}
+      keyExtractor={(log: any) => `${log.id || log.timestamp}-${log.recordId || ""}`}
     />
   );
 }

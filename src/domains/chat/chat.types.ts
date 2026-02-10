@@ -66,6 +66,8 @@ export interface SendMessageDTO {
   conteudo: string;
   tipo?: MessageType;
   anexo?: File;
+  anexoUrl?: string;
+  anexoNome?: string;
 }
 
 export interface UpdateStatusDTO {

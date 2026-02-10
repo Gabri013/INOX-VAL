@@ -12,7 +12,7 @@
  * ============================================================================
  */
 
-import { FirestoreService, getEmpresaId, getCurrentUserId } from "./base";
+import { FirestoreService, getEmpresaId, getCurrentUserId, getCurrentUserProfile } from "./base";
 import { COLLECTIONS } from "@/types/firebase";
 import {
   addDoc,
@@ -74,11 +74,18 @@ export const anunciosService = {
 
   async createAnuncio(data: CreateAnuncioDTO) {
     const userId = await getCurrentUserId();
+    const profile = await getCurrentUserProfile();
+    const autorNome =
+      profile?.nome ||
+      profile?.name ||
+      profile?.displayName ||
+      profile?.email ||
+      "Usuário";
     const res = await _anuncioService.create({
       ...data,
       status: data.dataInicio ? "agendado" : "ativo",
       autorId: userId,
-      autorNome: "", // preenchido no front se necessário
+      autorNome,
       criadoEm: new Date().toISOString(),
       atualizadoEm: new Date().toISOString(),
     } as any);

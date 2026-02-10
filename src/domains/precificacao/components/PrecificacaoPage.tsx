@@ -16,7 +16,6 @@ import { MaterialRedondoForm } from "./forms/MaterialRedondoForm";
 import { CantoneiraForm } from "./forms/CantoneiraForm";
 import { PortasBatentesForm } from "./forms/PortasBatentesForm";
 import { QuoteResults } from "./QuoteResults";
-import { ConfigPanel } from "./ConfigPanel";
 
 const PRODUTOS: Array<{ id: ProdutoTipo; label: string }> = [
   { id: "bancadas", label: "Bancadas" },
@@ -38,14 +37,7 @@ export function PrecificacaoPage() {
   const [formData, setFormData] = useState<any>({});
   const [quoteResult, setQuoteResult] = useState<any>(null);
 
-  // Configurações globais
-  const [precoKgInox, setPrecoKgInox] = useState(45);
-  const [fatorVenda, setFatorVenda] = useState(3);
-  const [sheetMode, setSheetMode] = useState<"auto" | "manual">("auto");
-  const [sheetSelected, setSheetSelected] = useState("2000x1250");
-  // sheetCostMode agora é automático
-  const [scrapMinPct, setScrapMinPct] = useState(15);
-  const [showConfig, setShowConfig] = useState(false);
+  // ...existing code...
 
   const firstRender = useRef(true);
 
@@ -86,22 +78,24 @@ export function PrecificacaoPage() {
       bom = buildBOMByTipo(produtoSelecionado, formData, {
         orcamentoTipo: formData.orcamentoTipo,
       });
-    } catch (error) {
-      toast.error("Erro ao gerar BOM. Verifique os dados informados.", {
+    } catch (error: any) {
+      const msg = error?.message || "Erro ao gerar BOM. Verifique os dados informados.";
+      toast.error(msg, {
         duration: 4000,
       });
       return;
     }
 
-    // Passo 3: Montar tabelas e regras
+    // Passo 3: Montar tabelas e regras a partir do formData
     const tables = makeDefaultTables({
-      inoxKgPrice: precoKgInox,
-      overheadPercent: 0,
+      inoxKgPrice: formData.precoKg || 45,
+      tubeKgPrice: formData.precoKgTubo || formData.precoKg || 45,
+      overheadPercent: formData.overheadPercent || 0,
     });
 
     const rules = {
-      markup: fatorVenda,
-      minMarginPct: 0.25,
+      markup: formData.markup || 3,
+      minMarginPct: formData.minMarginPct || 0.25,
     };
 
     // Passo 4: Sheet policy (todas as famílias com mesmo modo)
@@ -117,10 +111,10 @@ export function PrecificacaoPage() {
     const autoSheetCostMode = quantidade >= 6 ? "bought" : "used";
     for (const fam of families) {
       sheetPolicyByFamily[fam] = {
-        mode: sheetMode,
-        manualSheetId: sheetMode === "manual" ? sheetSelected : undefined,
+        mode: formData.sheetMode || "auto",
+        manualSheetId: formData.sheetMode === "manual" ? formData.sheetSelected : undefined,
         costMode: autoSheetCostMode,
-        scrapMinPct: scrapMinPct / 100,
+        scrapMinPct: (formData.scrapMinPct ?? 15) / 100,
       };
     }
 
@@ -170,13 +164,7 @@ export function PrecificacaoPage() {
                 <p className="text-sm text-gray-600">Motor V2 - Cálculo Industrial com Nesting</p>
               </div>
             </div>
-            <button
-              onClick={() => setShowConfig(!showConfig)}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-            >
-              <Settings className="w-5 h-5" />
-              <span>Configurações</span>
-            </button>
+            {/* Configurações globais removidas. Toda configuração agora está junto ao input do produto. */}
           </div>
         </div>
       </header>
@@ -209,20 +197,7 @@ export function PrecificacaoPage() {
           </div>
 
           <div className="lg:col-span-2 space-y-6">
-            {showConfig && (
-              <ConfigPanel
-                precoKgInox={precoKgInox}
-                setPrecoKgInox={setPrecoKgInox}
-                fatorVenda={fatorVenda}
-                setFatorVenda={setFatorVenda}
-                sheetMode={sheetMode}
-                setSheetMode={setSheetMode}
-                sheetSelected={sheetSelected}
-                setSheetSelected={setSheetSelected}
-                scrapMinPct={scrapMinPct}
-                setScrapMinPct={setScrapMinPct}
-              />
-            )}
+            {/* ConfigPanel removido: campos de configuração migrarão para o formulário do produto */}
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">
@@ -250,6 +225,7 @@ export function PrecificacaoPage() {
               {produtoSelecionado === "coifas" && (
                 <CoifasForm formData={formData} setFormData={setFormData} />
               )}
+
               {produtoSelecionado === "chapaPlana" && (
                 <ChapaPlanaForm formData={formData} setFormData={setFormData} />
               )}

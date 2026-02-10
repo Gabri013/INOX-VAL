@@ -270,6 +270,7 @@ function round2(n: number) {
    4) QUOTE ENGINE V2
    ========================= */
 
+
 export function quoteWithSheetSelectionV2(params: {
   tables: PricingTables;
   rules: PricingRules;
@@ -277,6 +278,8 @@ export function quoteWithSheetSelectionV2(params: {
   bom: BuiltBOM;
 }): QuoteResultV2 {
   const { tables, rules, sheetPolicyByFamily, bom } = params;
+  // DEBUG LOGS: Tubes
+  console.log('[QUOTE] tubeParts:', JSON.stringify(bom.tubeParts));
   const warnings: string[] = [];
 
   // 4.1 Sheet groups: family|thickness
@@ -341,10 +344,23 @@ export function quoteWithSheetSelectionV2(params: {
 
   // 4.3 Tubes
   let costTubes = 0;
+  const tubeDetails: Array<{ label: string; metros: number; kgpm: number; precoKg: number; custo: number }> = [];
   for (const t of bom.tubeParts) {
     const kgpm = Number(tables.tubeKgPerMeter[t.tubeKey]) || 0;
     if (t.meters > 0 && !(kgpm > 0)) warnings.push(`Sem kg/m para tubo "${t.tubeKey}".`);
-    costTubes += t.meters * kgpm * tables.inoxKgPrice;
+    // Preço/kg por tipo
+    let precoKg = tables.inoxKgPrice;
+    if (t.tubeKey === "tuboRedondo_38_1x1_2" && "tubeKgPricePes" in tables) precoKg = (tables as any).tubeKgPricePes;
+    if (t.tubeKey === "tuboRedondo_25_4x1_2" && "tubeKgPriceContraventamento" in tables) precoKg = (tables as any).tubeKgPriceContraventamento;
+    const custo = t.meters * kgpm * precoKg;
+    costTubes += custo;
+    tubeDetails.push({
+      label: t.tubeKey === "tuboRedondo_38_1x1_2" ? "Tubo dos Pés (Ø38,1x1,2mm)" : t.tubeKey === "tuboRedondo_25_4x1_2" ? "Contraventamento (Ø25,4x1,2mm)" : t.tubeKey,
+      metros: t.meters,
+      kgpm,
+      precoKg,
+      custo,
+    });
   }
 
   // 4.4 Angles
@@ -371,19 +387,26 @@ export function quoteWithSheetSelectionV2(params: {
     costProcesses += (pr.minutes / 60) * cph;
   }
 
+
   // 4.7 Overhead
   const overheadPercent = Number(tables.overheadPercent) || 0;
+  if (!Number.isFinite(overheadPercent)) console.warn('[QUOTE] overheadPercent NaN:', tables.overheadPercent);
   const overhead = (costSheetTotal + costTubes + costAngles + costAccessories + costProcesses) * clamp01(overheadPercent);
 
   // 4.8 Cost base
   const costBase = costSheetTotal + costTubes + costAngles + costAccessories + costProcesses + overhead;
+  if (!Number.isFinite(costBase)) console.warn('[QUOTE] costBase NaN:', { costSheetTotal, costTubes, costAngles, costAccessories, costProcesses, overhead });
 
   // 4.9 Anti-prejuízo + price suggested
   const minMargin = clamp01(rules.minMarginPct);
   const priceMinSafe = costBase / Math.max(1 - minMargin, 1e-9);
+  if (!Number.isFinite(priceMinSafe)) console.warn('[QUOTE] priceMinSafe NaN:', { costBase, minMargin });
 
   const priceSuggestedRaw = costBase * rules.markup;
+  if (!Number.isFinite(priceSuggestedRaw)) console.warn('[QUOTE] priceSuggestedRaw NaN:', { costBase, rules });
+
   const priceSuggested = Math.max(priceSuggestedRaw, priceMinSafe);
+  if (!Number.isFinite(priceSuggested)) console.warn('[QUOTE] priceSuggested NaN:', { priceSuggestedRaw, priceMinSafe });
 
   return {
     nestingByGroup,
@@ -398,6 +421,7 @@ export function quoteWithSheetSelectionV2(params: {
       priceMinSafe: round2(priceMinSafe),
       priceSuggested: round2(priceSuggested),
     },
+    tubeDetails,
     warnings,
   };
 }
