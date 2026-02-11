@@ -17,7 +17,8 @@
     "db:recreate": "node scripts/db-recreate.js",
     "smoke:firestore": "node scripts/smoke-firestore.js",
     "seed:users": "node scripts/seed-sector-users.js",
-    "test:firebase": "node scripts/test-firebase.js"
+    "test:firebase": "node scripts/test-firebase.js",
+    "check:all": "bash scripts/check-all.sh"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
