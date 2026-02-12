@@ -284,6 +284,7 @@ export default function Orcamentos() {
               toast.success(`Orçamento ${orc.numero} convertido em ${result.data.numero}`, {
                 description: "A ordem de produção foi criada com sucesso",
               });
+              void loadOrcamentos();
             } else {
               toast.error(result.error || "Não foi possível converter o orçamento. Tente novamente.");
             }

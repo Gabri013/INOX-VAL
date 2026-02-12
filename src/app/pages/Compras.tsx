@@ -195,9 +195,11 @@ export default function Compras() {
     {
       icon: CheckCircle,
       label: "Aprovar",
-      onClick: (sol: SolicitacaoCompra) => {
-        updateCompra(sol.id, { status: "Aprovada" });
-        toast.success(`Solicitação ${sol.numero} aprovada`);
+      onClick: async (sol: SolicitacaoCompra) => {
+        const result = await updateCompra(sol.id, { status: "Aprovada" });
+        if (result.success) {
+          toast.success(`Solicitação ${sol.numero} aprovada`);
+        }
       },
       show: (sol: SolicitacaoCompra) => sol.status === "Solicitada" || sol.status === "Cotação"
     }

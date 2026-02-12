@@ -250,7 +250,7 @@ export default function EstoqueSaldos() {
       columns={columns as any}
       renderCell={renderCell as any}
       actions={actions as any}
-      keyExtractor={(saldo) => saldo.produtoId}
+      keyExtractor={(saldo) => getItemId(saldo)}
       emptyMessage="Nenhum material no estoque"
       showPagination={false}
     />

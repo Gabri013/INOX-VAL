@@ -11,10 +11,11 @@ class OrcamentosService extends FirestoreService<Orcamento & { ownerId?: string 
     const profile = await getCurrentUserProfile();
     const role = profile?.role;
     const userId = profile?.id;
+    const normalizedRole = typeof role === "string" ? role.trim().toLowerCase() : "";
 
     const whereFilters = params.where ? [...params.where] : [];
 
-    if (role === "VENDEDOR" && userId) {
+    if ((normalizedRole === "vendedor" || normalizedRole === "seller") && userId) {
       whereFilters.push({ field: "ownerId", operator: "==", value: userId });
     }
 
