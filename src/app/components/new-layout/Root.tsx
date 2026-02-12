@@ -29,15 +29,15 @@ const navigation = [
 	{ name: "Clientes", href: "/clientes", icon: Users },
 	{ name: "Produtos", href: "/produtos", icon: Package },
 	{ name: "Estoque", href: "/estoque", icon: Archive },
-	{ name: "OrÃƒÂ§amentos", href: "/orcamentos", icon: FileText },
+	{ name: "Orçamentos", href: "/orcamentos", icon: FileText },
 	{ name: "Ordens", href: "/ordens", icon: ClipboardList },
 	{ name: "Compras", href: "/compras", icon: ShoppingCart },
-	{ name: "Controle de ProduÃƒÂ§ÃƒÂ£o", href: "/controle-producao", icon: Factory },
+	{ name: "Controle de Produção", href: "/controle-producao", icon: Factory },
 	{ name: "Chat", href: "/chat", icon: MessageCircle },
-	{ name: "AnÃƒÂºncios", href: "/anuncios", icon: Megaphone },
-	{ name: "UsuÃƒÂ¡rios", href: "/usuarios", icon: UserCog },
-	{ name: "ConfiguraÃƒÂ§ÃƒÂ£o de Custos", href: "/configuracoes?tab=custos", icon: Settings },
-	{ name: "Precificacao", href: "/precificacao", icon: Calculator },
+	{ name: "Anúncios", href: "/anuncios", icon: Megaphone },
+	{ name: "Usuários", href: "/usuarios", icon: UserCog },
+	{ name: "Configuração de Custos", href: "/configuracoes?tab=custos", icon: Settings },
+	{ name: "Precificação", href: "/precificacao", icon: Calculator },
 	{ name: "Auditoria", href: "/auditoria", icon: Shield },
 ];
 
@@ -46,7 +46,7 @@ export default function Root() {
 	const location = useLocation();
 	const navigate = useNavigate();
 
-	// Mock user data - em produÃƒÂ§ÃƒÂ£o virÃƒÂ¡ do AuthContext
+	// Mock user data - em produção virá do AuthContext
 	const user = {
 		name: "Admin User",
 		email: "admin@inoxval.com",
@@ -83,7 +83,7 @@ export default function Root() {
 							</div>
 							<div>
 								<h1 className="text-base font-semibold text-white">ERP Inox</h1>
-								<p className="text-xs text-neutral-400">Sistema de GestÃƒÂ£o</p>
+								<p className="text-xs text-neutral-400">Sistema de Gestão</p>
 							</div>
 						</div>
 					) : (
