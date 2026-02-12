@@ -255,38 +255,7 @@ export function useOrdens(options: UseOrdensOptions = {}) {
           return { success: false, error: 'Este orcamento ja foi convertido em OP' };
         }
 
-      const numero = `OP-${Date.now()}`;
-      const dataAprovacao = toDateValue(
-        (orcamento as { aprovadoEm?: unknown }).aprovadoEm ?? (orcamento as any).updatedAt ?? orcamento.data
-      );
-      const dataAbertura = new Date();
-      const dataPrevisao = new Date(dataAprovacao.getTime() + 15 * 24 * 60 * 60 * 1000);
-      const novaOrdem: OrdemProducao = {
-        id: '',
-        numero,
-        orcamentoId: orcamento.id,
-        clienteId: orcamento.clienteId,
-        clienteNome: orcamento.clienteNome,
-        dataAbertura,
-        dataPrevisao,
-        status: 'Pendente',
-        itens: orcamento.itens.map((item) => ({
-          id: item.id,
-          produtoId: item.modeloId,
-          produtoNome: item.descricao,
-          quantidade: item.quantidade,
-          unidade: 'un',
-          precoUnitario: item.precoUnitario,
-          subtotal: item.subtotal,
-        })),
-        total: orcamento.total,
-        prioridade: 'Normal',
-        observacoes: `Convertido do orçamento ${orcamento.numero}`,
-        materiaisReservados: false,
-        materiaisConsumidos: false,
-      };
-
-      const result = await ordensService.create(novaOrdem as OrdemProducao);
+      const result = await ordensService.createFromApprovedBudgetAtomic(orcamentoId);
       if (result.success && result.data) {
         setOrdens((prev) => [normalizeOrdem(result.data!), ...prev]);
         try {
@@ -298,9 +267,6 @@ export function useOrdens(options: UseOrdensOptions = {}) {
               : 'Erro ao sincronizar itens de produção'
           );
         }
-        await orcamentosService.update(orcamentoId, {
-          ordemId: result.data.id,
-        } as Partial<any>);
         toast.success(`OP ${result.data.numero} criada com sucesso!`);
       } else {
         toast.error(result.error || 'Erro ao criar ordem de produção');

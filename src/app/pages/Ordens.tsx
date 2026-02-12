@@ -108,19 +108,16 @@ export default function Ordens() {
     }));
   };
 
-  const montarMateriaisDaOrdem = (ordem: OrdemProducao) => {
-    const orcamento = orcamentos.find((o) => o.id === ordem.orcamentoId);
-    if (orcamento) {
-      const materiais = extrairMateriaisDaOrcamento(orcamento);
-      if (materiais.length > 0) return materiais;
-    }
+  const validarBOMConfiavel = (orcamento: Orcamento) => {
+    const itensSemSnapshot = (orcamento.itens || []).filter((item) => {
+      const snapshot = item.calculoSnapshot as ResultadoCalculadora | undefined;
+      return !snapshot?.bomResult?.bom || snapshot.bomResult.bom.length === 0;
+    });
 
-    return (ordem.itens || []).map((item) => ({
-      materialId: item.produtoId,
-      materialNome: item.produtoNome,
-      quantidade: item.quantidade,
-      unidade: item.unidade || "un",
-    }));
+    return {
+      ok: itensSemSnapshot.length === 0,
+      itensSemSnapshot,
+    };
   };
 
   const getStatusOP = (status: string): StatusOP => {
@@ -346,7 +343,41 @@ export default function Ordens() {
     setConsumoOrdem(ordem);
     setSelectedOrdem(ordem);
 
-    const materiaisBase = montarMateriaisDaOrdem(ordem);
+    const orcamento = orcamentos.find((o) => o.id === ordem.orcamentoId);
+    if (!orcamento) {
+      console.warn("[ordens] Consumo bloqueado: orçamento da OP não encontrado", {
+        ordemId: ordem.id,
+        numeroOrdem: ordem.numero,
+        orcamentoId: ordem.orcamentoId,
+      });
+      toast.error("Consumo bloqueado: orçamento da OP não encontrado", {
+        description: "Abra o orçamento vinculado, valide o cálculo e gere novamente a OP se necessário.",
+      });
+      setConsumoLoading(false);
+      return;
+    }
+
+    const validacaoBom = validarBOMConfiavel(orcamento);
+    if (!validacaoBom.ok) {
+      console.warn("[ordens] Consumo bloqueado: item sem snapshot/BOM confiável", {
+        ordemId: ordem.id,
+        numeroOrdem: ordem.numero,
+        orcamentoId: orcamento.id,
+        itensSemSnapshot: validacaoBom.itensSemSnapshot.map((item) => ({
+          itemId: item.id,
+          descricao: item.descricao,
+          modeloId: item.modeloId,
+        })),
+      });
+      toast.error("Consumo bloqueado: orçamento sem snapshot/BOM confiável", {
+        description:
+          "Reabra o orçamento, recalcule os itens e salve antes de iniciar a produção para evitar baixa em material incorreto.",
+      });
+      setConsumoLoading(false);
+      return;
+    }
+
+    const materiaisBase = extrairMateriaisDaOrcamento(orcamento);
     if (materiaisBase.length === 0) {
       toast.error("Não foi possível identificar materiais para consumo");
       setConsumoLoading(false);
