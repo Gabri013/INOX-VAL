@@ -116,7 +116,25 @@ export function useCreateConversa() {
 
   return useMutation({
     mutationFn: (data: CreateConversaDTO) => chatService.createConversa(data),
-    onSuccess: () => {
+    onSuccess: (conversa) => {
+      if (conversa) {
+        queryClient.setQueryData(chatKeys.conversas(), (old: any[] | undefined) => {
+          const listaAtual = Array.isArray(old) ? old : [];
+          const existente = listaAtual.some((item) => item?.id === conversa.id);
+          if (existente) {
+            return listaAtual;
+          }
+          return [
+            {
+              ...conversa,
+              participantesDetalhes: (conversa as any).participantesDetalhes ?? [],
+              mensagensNaoLidas: conversa.mensagensNaoLidas ?? 0,
+            },
+            ...listaAtual,
+          ];
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: chatKeys.conversas() });
       toast.success('Conversa iniciada');
     },
