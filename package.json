@@ -11,6 +11,8 @@
     "sheet:extract": "node scripts/extract_planilha_preco.ts",
     "sheet:generate": "node scripts/generate_engine_from_model.ts",
     "sheet:test-equivalence": "node scripts/test_equivalence.ts",
+    "disk-survey:build": "tsc -p tools/disk-survey/tsconfig.json",
+    "disk-survey": "npm run disk-survey:build && node tools/disk-survey/dist/cli.js",
     "preview": "vite preview",
     "seed": "node scripts/populate-firestore.js",
     "db:reset": "node scripts/db-reset.js",

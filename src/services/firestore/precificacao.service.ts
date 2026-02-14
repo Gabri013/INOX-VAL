@@ -3,10 +3,13 @@ import { COLLECTIONS } from "@/types/firebase";
 
 export interface PrecificacaoRun {
   id: string;
-  empresaId: string;
-  userId: string;
-  createdAt: any;
   sheetName: string;
+  mode?: "classic" | "op";
+  inputFileName?: string;
+  empresaId?: string;
+  userId?: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
   overrides: Record<string, any>;
   outputs: Record<string, any>;
 }

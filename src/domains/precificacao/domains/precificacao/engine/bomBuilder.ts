@@ -21,7 +21,8 @@ export type ProdutoTipo =
   | "chapaPlana"
   | "materialRedondo"
   | "cantoneira"
-  | "portasBatentes";
+  | "portasBatentes"
+  | "ordemProducaoExcel";
 
 export type ProcessKind = "cut" | "bend" | "weld" | "finish" | "assembly" | "installation";
 
@@ -67,6 +68,10 @@ export interface BuiltBOM {
   angleParts?: AnglePart[];
   accessories: AccessoryPart[];
   processes: ProcessItem[];
+}
+
+export interface OrdemProducaoExcelInput {
+  importedBOM?: BuiltBOM;
 }
 
 /* =========================
@@ -606,6 +611,13 @@ export interface PortasBatentesInput {
   };
 }
 
+export function buildBOM_OrdemProducaoExcel(input: OrdemProducaoExcelInput): BuiltBOM {
+  if (!input.importedBOM) {
+    throw new Error("Importe uma planilha de Ordem de Producao antes de calcular.");
+  }
+  return input.importedBOM;
+}
+
 export function buildBOM_PortasBatentes(input: PortasBatentesInput): BuiltBOM {
   const sheetParts: SheetPartRect[] = [];
   const tubeParts: TubePart[] = [];
@@ -662,5 +674,7 @@ export function buildBOMByTipo(
       return buildBOM_Cantoneira(input as CantoneiraInput);
     case "portasBatentes":
       return buildBOM_PortasBatentes(input as PortasBatentesInput);
+    case "ordemProducaoExcel":
+      return buildBOM_OrdemProducaoExcel(input as OrdemProducaoExcelInput);
   }
 }

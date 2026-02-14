@@ -3,7 +3,13 @@ import { Calculator } from "lucide-react";
 import { toast } from "sonner";
 import { buildBOMByTipo, type ProdutoTipo } from "../domains/precificacao/engine/bomBuilder";
 import { makeDefaultTables } from "../domains/precificacao/engine/defaultTables";
-import { validateBeforeQuoteV2, quoteWithSheetSelectionV2, type SheetPolicy } from "../domains/precificacao/engine/quoteV2";
+import {
+  validateBeforeQuoteV2,
+  quoteWithSheetSelectionV2,
+  type BuiltBOM,
+  type QuoteResultV2,
+  type SheetPolicy,
+} from "../domains/precificacao/engine/quoteV2";
 import { BancadasForm } from "./forms/BancadasForm";
 import { LavatoriosForm } from "./forms/LavatoriosForm";
 import { PrateleirasForm } from "./forms/PrateleirasForm";
@@ -15,11 +21,27 @@ import { ChapaPlanaForm } from "./forms/ChapaPlanaForm";
 import { MaterialRedondoForm } from "./forms/MaterialRedondoForm";
 import { CantoneiraForm } from "./forms/CantoneiraForm";
 import { PortasBatentesForm } from "./forms/PortasBatentesForm";
+import { OrdemProducaoExcelForm } from "./forms/OrdemProducaoExcelForm";
 import { QuoteResults } from "./QuoteResults";
+import { OpQuoteResults } from "./OpQuoteResults";
+import { estimateSheetCostByOp } from "../services/sheetEstimation.service";
+import { DEFAULT_PROCESS_RULES } from "../services/processRouting.service";
+import type {
+  OpNormalizationResult,
+  OpPricingSnapshot,
+  OpPricingTotals,
+  ProcessRule,
+  SheetEstimationOverride,
+  SheetEstimationResult,
+} from "../types/opPricing";
+import { sheetSpecsService } from "@/services/firestore/sheetSpecs.service";
+import { processRulesService } from "@/services/firestore/processRules.service";
+import { orcamentosService } from "@/services/firestore/orcamentos.service";
+import { precificacaoService } from "@/services/firestore/precificacao.service";
 
 const PRODUTOS: Array<{ id: ProdutoTipo; label: string }> = [
   { id: "bancadas", label: "Bancadas" },
-  { id: "lavatorios", label: "Lavat�rios" },
+  { id: "lavatorios", label: "Lavatórios" },
   { id: "prateleiras", label: "Prateleiras" },
   { id: "mesas", label: "Mesas" },
   { id: "estanteCantoneira", label: "Estante Cantoneira" },
@@ -29,73 +51,104 @@ const PRODUTOS: Array<{ id: ProdutoTipo; label: string }> = [
   { id: "materialRedondo", label: "Material Redondo" },
   { id: "cantoneira", label: "Cantoneira" },
   { id: "portasBatentes", label: "Portas e Batentes" },
+  { id: "ordemProducaoExcel", label: "Precificação por OP" },
 ];
 
+type CalculationState =
+  | { kind: "default"; quote: QuoteResultV2 }
+  | {
+      kind: "op";
+      normalization: OpNormalizationResult;
+      estimation: SheetEstimationResult;
+      totals: OpPricingTotals;
+      snapshot: OpPricingSnapshot;
+    };
+
+const toNumber = (value: unknown, fallback: number) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const toPercent = (value: unknown, fallback = 0) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return parsed > 1 ? parsed / 100 : parsed;
+};
+
+const round = (value: number, decimals = 2) => {
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
+};
+
+const isDocumentTooLargeError = (message: string) => {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("maximum") &&
+    (normalized.includes("size") || normalized.includes("large") || normalized.includes("too big"))
+  );
+};
+
+const buildOpTotals = (params: {
+  custoMaterialChapa: number;
+  demaisCustos: number;
+  margemPct: number;
+  impostosPct: number;
+}): OpPricingTotals => {
+  const subtotalBase = params.custoMaterialChapa + params.demaisCustos;
+  const margemValor = subtotalBase * (params.margemPct / 100);
+  const impostosValor = (subtotalBase + margemValor) * (params.impostosPct / 100);
+  const precoFinal = subtotalBase + margemValor + impostosValor;
+  return {
+    custoMaterialChapa: round(params.custoMaterialChapa),
+    demaisCustos: round(params.demaisCustos),
+    subtotalBase: round(subtotalBase),
+    margemPct: round(params.margemPct),
+    margemValor: round(margemValor),
+    impostosPct: round(params.impostosPct),
+    impostosValor: round(impostosValor),
+    precoFinal: round(precoFinal),
+  };
+};
+
 export function PrecificacaoPage() {
-  // Recalcula or�amento automaticamente ao mudar qualquer campo relevante
   const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoTipo>("bancadas");
   const [formData, setFormData] = useState<any>({});
-  const [quoteResult, setQuoteResult] = useState<any>(null);
+  const [result, setResult] = useState<CalculationState | null>(null);
+  const [savingOrcamento, setSavingOrcamento] = useState(false);
 
-  // ...existing code...
-
-
-  // C�lculo autom�tico ao mudar qualquer campo relevante
-  // Remove c�lculo autom�tico para evitar toast ao abrir/alterar tipo de or�amento
-  // useEffect(() => {
-  //     return;
-  //   }
-  //   handleCalcular();
-  //   // eslint-disable-next-line
-  // }, [formData, produtoSelecionado, precoKgInox, fatorVenda, sheetMode, sheetSelected, scrapMinPct]);
-
-  const handleCalcular = () => {
-    // Passo 1: Valida��es espec�ficas antes de gerar BOM
+  const handleCalcularClassico = (): CalculationState | null => {
     if (produtoSelecionado === "bancadas" && formData.orcamentoTipo === "bancadaComCuba") {
       if (!formData.cuba || !formData.cuba.L || !formData.cuba.W || !formData.cuba.H) {
-        toast.error("Para bancada com cuba, informe as dimens�es da cuba (L, W, H).", {
+        toast.error("Para bancada com cuba, informe as dimensões da cuba (L, W, H).", {
           duration: 4000,
         });
-        return;
+        return null;
       }
     }
 
-    if (produtoSelecionado === "lavatorios" && formData.tipo === "lavatorioPadrao") {
-      if (!formData.modeloPadrao) {
-        toast.error("Para lavat�rio padr�o, selecione o modelo (750/850/FDE).", {
-          duration: 4000,
-        });
-        return;
-      }
+    if (produtoSelecionado === "lavatorios" && formData.tipo === "lavatorioPadrao" && !formData.modeloPadrao) {
+      toast.error("Para lavatório padrão, selecione o modelo (750/850/FDE).", {
+        duration: 4000,
+      });
+      return null;
     }
 
-    // Passo 2: Gerar BOM
-    let bom;
+    let bom: BuiltBOM;
     try {
       bom = buildBOMByTipo(produtoSelecionado, formData, {
         orcamentoTipo: formData.orcamentoTipo,
       });
     } catch (error: any) {
-      const msg = error?.message || "Erro ao gerar BOM. Verifique os dados informados.";
-      toast.error(msg, {
-        duration: 4000,
-      });
-      return;
+      toast.error(error?.message || "Erro ao gerar BOM. Verifique os dados informados.", { duration: 4000 });
+      return null;
     }
-
-    // Passo 3: Montar tabelas e regras a partir do formData
-    const toNumber = (value: unknown, fallback: number) => {
-      const parsed = Number(value);
-      return Number.isFinite(parsed) ? parsed : fallback;
-    };
 
     const inoxKgPrice = toNumber(formData.precoKg ?? formData.precoKgInox, 45);
     const tubeKgPrice = toNumber(
       formData.precoKgTubo ?? formData.precoKgTuboPes ?? formData.precoKg ?? formData.precoKgInox,
       inoxKgPrice
     );
-    const overheadRaw = toNumber(formData.overheadPercent, 0);
-    const overheadPercent = overheadRaw > 1 ? overheadRaw / 100 : overheadRaw;
+    const overheadPercent = toPercent(formData.overheadPercent, 0);
 
     const tables = makeDefaultTables({
       inoxKgPrice,
@@ -105,52 +158,42 @@ export function PrecificacaoPage() {
       tubeKgPriceContraventamento: toNumber(formData.precoKgTuboContraventamento, tubeKgPrice),
     });
 
-    const markup = toNumber(formData.markup ?? formData.fatorVenda, 3);
-    const minMarginRaw = toNumber(formData.minMarginPct, 0.25);
-    const minMarginPct = minMarginRaw > 1 ? minMarginRaw / 100 : minMarginRaw;
-
     const rules = {
-      markup,
-      minMarginPct,
+      markup: toNumber(formData.markup ?? formData.fatorVenda, 3),
+      minMarginPct: toPercent(formData.minMarginPct, 0.25),
     };
 
-    // Passo 4: Sheet policy (todas as fam�lias com mesmo modo)
-    const families = Array.from(new Set(bom.sheetParts.map((p) => p.family)));
+    const families = Array.from(new Set(bom.sheetParts.map((part) => part.family)));
     const sheetPolicyByFamily: Record<string, SheetPolicy> = {};
-    // L�gica autom�tica: se quantidade >= 6, usa "bought"; sen�o, "used"
-    let quantidade = 1;
-    if (formData.quantidade && Number.isFinite(formData.quantidade)) {
-      quantidade = Number(formData.quantidade);
-    } else if (formData.quantidadeCubas && Number.isFinite(formData.quantidadeCubas)) {
-      quantidade = Number(formData.quantidadeCubas);
-    }
-    const autoSheetCostMode = quantidade >= 6 ? "bought" : "used";
-    for (const fam of families) {
-      sheetPolicyByFamily[fam] = {
+    const quantity = toNumber(formData.quantidade ?? formData.quantidadeCubas, 1);
+    const autoSheetCostMode = quantity >= 6 ? "bought" : "used";
+
+    for (const family of families) {
+      sheetPolicyByFamily[family] = {
         mode: formData.sheetMode || "auto",
         manualSheetId: formData.sheetMode === "manual" ? formData.sheetSelected : undefined,
         costMode: autoSheetCostMode,
-        scrapMinPct: (formData.scrapMinPct ?? 15) / 100,
+        scrapMinPct: toPercent(formData.scrapMinPct, 0.15),
       };
     }
 
-    // Passo 5: Validar
     const errors = validateBeforeQuoteV2({
       tables,
       rules,
       sheetPolicyByFamily,
       bom,
     });
-
-    if (errors.length) {
+    if (errors.length > 0) {
       toast.error(
-        `N�o foi poss�vel calcular:\n${errors.slice(0, 5).map((e) => `� ${e.message}`).join("\n")}`,
+        `Não foi possível calcular:\n${errors
+          .slice(0, 5)
+          .map((item) => `• ${item.message}`)
+          .join("\n")}`,
         { duration: 5000 }
       );
-      return;
+      return null;
     }
 
-    // Passo 6: Calcular quote
     const quote = quoteWithSheetSelectionV2({
       tables,
       rules,
@@ -158,13 +201,181 @@ export function PrecificacaoPage() {
       bom,
     });
 
-    setQuoteResult(quote);
-
-    if (quote.warnings.length) {
-      toast("Aten��o", {
-        description: quote.warnings.slice(0, 3).map((w) => `� ${w}`).join("\n"),
+    if (quote.warnings.length > 0) {
+      toast("Atenção", {
+        description: quote.warnings.slice(0, 3).map((warning) => `• ${warning}`).join("\n"),
         duration: 5000,
       });
+    }
+
+    return { kind: "default", quote };
+  };
+
+  const handleCalcularPorOp = async (): Promise<CalculationState | null> => {
+    const normalization = formData.opNormalization as OpNormalizationResult | undefined;
+    if (!normalization || normalization.items.length === 0) {
+      toast.error("Importe uma OP válida para calcular.");
+      return null;
+    }
+
+    const specsResult = await sheetSpecsService.listActive();
+    if (!specsResult.success || !specsResult.data) {
+      toast.error(specsResult.error || "Não foi possível carregar a tabela de chapas (sheet_specs).");
+      return null;
+    }
+
+    const rulesResult = await processRulesService.listActive();
+    const processRules: ProcessRule[] =
+      rulesResult.success && rulesResult.data && rulesResult.data.items.length > 0
+        ? rulesResult.data.items
+        : DEFAULT_PROCESS_RULES;
+
+    const override: SheetEstimationOverride = {
+      scrapPct: formData.overrideScrapPct === "" ? undefined : toPercent(formData.overrideScrapPct, 0),
+      efficiency: formData.overrideEfficiency === "" ? undefined : toPercent(formData.overrideEfficiency, 0),
+    };
+
+    const estimation = estimateSheetCostByOp({
+      items: normalization.items,
+      sheetSpecs: specsResult.data.items,
+      processRules,
+      override,
+    });
+
+    const totals = buildOpTotals({
+      custoMaterialChapa: estimation.totals.materialCost,
+      demaisCustos: toNumber(formData.demaisCustos, 0),
+      margemPct: toNumber(formData.margemPct, 30),
+      impostosPct: toNumber(formData.impostosPct, 0),
+    });
+
+    const snapshot: OpPricingSnapshot = {
+      fileName: formData.importedFileName,
+      sheetName: normalization.sheetName,
+      items: normalization.items,
+      classificationResults: estimation.classificationResults,
+      processRulesUsed: processRules,
+      overrides: override,
+      breakdown: estimation.groups,
+      excludedItems: estimation.excludedItems,
+      pending: estimation.pending,
+      totals,
+      canFinalize: estimation.canFinalize,
+    };
+
+    if (estimation.pending.length > 0) {
+      toast.warning(`Foram encontradas ${estimation.pending.length} pendências no cálculo por OP.`);
+    }
+
+    return {
+      kind: "op",
+      normalization,
+      estimation,
+      totals,
+      snapshot,
+    };
+  };
+
+  const handleCalcular = async () => {
+    if (produtoSelecionado === "ordemProducaoExcel") {
+      const opResult = await handleCalcularPorOp();
+      if (opResult) setResult(opResult);
+      return;
+    }
+
+    const classic = handleCalcularClassico();
+    if (classic) setResult(classic);
+  };
+
+  const handleSalvarOrcamentoOp = async () => {
+    if (!result || result.kind !== "op") return;
+    if (!result.estimation.canFinalize) {
+      toast.error("Existem pendências críticas. Corrija antes de salvar o orçamento.");
+      return;
+    }
+
+    setSavingOrcamento(true);
+    try {
+      const runResult = await precificacaoService.create({
+        mode: "op",
+        sheetName: result.normalization.sheetName,
+        inputFileName: formData.importedFileName,
+        overrides: {
+          scrapPct: result.snapshot.overrides.scrapPct,
+          efficiency: result.snapshot.overrides.efficiency,
+          margemPct: result.totals.margemPct,
+          impostosPct: result.totals.impostosPct,
+          demaisCustos: result.totals.demaisCustos,
+        },
+        outputs: {
+          totals: result.totals,
+          breakdown: result.estimation.groups,
+          pending: result.estimation.pending,
+          excludedItems: result.estimation.excludedItems,
+          classificationResults: result.estimation.classificationResults,
+          normalizedItems: result.normalization.items,
+          processRulesUsed: result.snapshot.processRulesUsed || [],
+        },
+      } as any);
+
+      const opPricingRunId = runResult.success && runResult.data ? runResult.data.id : undefined;
+      const now = new Date();
+      const validade = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
+      const total = result.totals.precoFinal;
+
+      const createPayload = {
+        clienteId: formData.clienteId || "cliente-nao-informado",
+        clienteNome: formData.clienteNome || "Cliente não informado",
+        data: now,
+        validade,
+        status: "Aguardando Aprovacao" as const,
+        itens: [
+          {
+            id: `op-${Date.now()}`,
+            modeloId: "precificacao-op",
+            modeloNome: "Precificação por OP",
+            descricao: formData.importedFileName || "Ordem de Produção",
+            quantidade: 1,
+            precoUnitario: total,
+            subtotal: total,
+          },
+        ],
+        subtotal: total,
+        desconto: 0,
+        total,
+        observacoes: "Orçamento gerado via modo Precificação por OP.",
+        opPricingRunId,
+        opPricingSnapshot: result.snapshot,
+      };
+
+      let createResult = await orcamentosService.create(createPayload as any);
+
+      if (!createResult.success && isDocumentTooLargeError(createResult.error || "")) {
+        const reducedSnapshot: OpPricingSnapshot = {
+          ...result.snapshot,
+          items: [],
+          classificationResults: result.snapshot.classificationResults.slice(0, 120),
+          excludedItems: result.snapshot.excludedItems.slice(0, 80),
+          pending: result.snapshot.pending.slice(0, 80),
+        };
+        createResult = await orcamentosService.create({
+          ...createPayload,
+          opPricingSnapshot: reducedSnapshot,
+          observacoes:
+            "Orçamento gerado via modo Precificação por OP (snapshot reduzido no orçamento; dados completos em pricing_runs).",
+        } as any);
+      }
+
+      if (!createResult.success) {
+        throw new Error(createResult.error || "Não foi possível salvar o orçamento.");
+      }
+
+      toast.success(`Orçamento salvo com sucesso (${createResult.data?.numero || "sem número"}).`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Falha ao salvar orçamento.";
+      toast.error(message);
+    } finally {
+      setSavingOrcamento(false);
     }
   };
 
@@ -172,15 +383,12 @@ export function PrecificacaoPage() {
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Calculator className="w-8 h-8 text-primary" />
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Sistema de Precifica��o Inox</h1>
-                <p className="text-sm text-muted-foreground">Motor V2 - C�lculo Industrial com Nesting</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <Calculator className="w-8 h-8 text-primary" />
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Sistema de Precificação Inox</h1>
+              <p className="text-sm text-muted-foreground">Modo clássico + modo por OP (consumo de chapa)</p>
             </div>
-            {/* Configura��es globais removidas. Toda configura��o agora est� junto ao input do produto. */}
           </div>
         </div>
       </header>
@@ -197,7 +405,7 @@ export function PrecificacaoPage() {
                     onClick={() => {
                       setProdutoSelecionado(produto.id);
                       setFormData({});
-                      setQuoteResult(null);
+                      setResult(null);
                     }}
                     className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
                       produtoSelecionado === produto.id
@@ -213,35 +421,26 @@ export function PrecificacaoPage() {
           </div>
 
           <div className="lg:col-span-2 space-y-6">
-            {/* ConfigPanel removido: campos de configura��o migrar�o para o formul�rio do produto */}
-
             <div className="bg-card rounded-lg shadow-sm border border-border p-6">
               <h2 className="text-xl font-semibold text-foreground mb-6">
-                {PRODUTOS.find((p) => p.id === produtoSelecionado)?.label}
+                {PRODUTOS.find((item) => item.id === produtoSelecionado)?.label}
               </h2>
 
-              {produtoSelecionado === "bancadas" && (
-                <BancadasForm formData={formData} setFormData={setFormData} />
-              )}
+              {produtoSelecionado === "bancadas" && <BancadasForm formData={formData} setFormData={setFormData} />}
               {produtoSelecionado === "lavatorios" && (
                 <LavatoriosForm formData={formData} setFormData={setFormData} />
               )}
               {produtoSelecionado === "prateleiras" && (
                 <PrateleirasForm formData={formData} setFormData={setFormData} />
               )}
-              {produtoSelecionado === "mesas" && (
-                <MesasForm formData={formData} setFormData={setFormData} />
-              )}
+              {produtoSelecionado === "mesas" && <MesasForm formData={formData} setFormData={setFormData} />}
               {produtoSelecionado === "estanteCantoneira" && (
                 <EstanteCantoneiraForm formData={formData} setFormData={setFormData} />
               )}
               {produtoSelecionado === "estanteTubo" && (
                 <EstanteTuboForm formData={formData} setFormData={setFormData} />
               )}
-              {produtoSelecionado === "coifas" && (
-                <CoifasForm formData={formData} setFormData={setFormData} />
-              )}
-
+              {produtoSelecionado === "coifas" && <CoifasForm formData={formData} setFormData={setFormData} />}
               {produtoSelecionado === "chapaPlana" && (
                 <ChapaPlanaForm formData={formData} setFormData={setFormData} />
               )}
@@ -254,21 +453,32 @@ export function PrecificacaoPage() {
               {produtoSelecionado === "portasBatentes" && (
                 <PortasBatentesForm formData={formData} setFormData={setFormData} />
               )}
+              {produtoSelecionado === "ordemProducaoExcel" && (
+                <OrdemProducaoExcelForm formData={formData} setFormData={setFormData} />
+              )}
 
               <button
                 onClick={handleCalcular}
                 className="mt-6 w-full bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
               >
                 <Calculator className="w-5 h-5" />
-                <span>Calcular Or�amento</span>
+                <span>Calcular Orçamento</span>
               </button>
             </div>
 
-            {quoteResult && <QuoteResults quote={quoteResult} />}
+            {result?.kind === "default" && <QuoteResults quote={result.quote} />}
+            {result?.kind === "op" && (
+              <OpQuoteResults
+                normalization={result.normalization}
+                estimation={result.estimation}
+                totals={result.totals}
+                onSave={handleSalvarOrcamentoOp}
+                saving={savingOrcamento}
+              />
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 }
-

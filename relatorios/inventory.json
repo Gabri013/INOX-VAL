@@ -1,0 +1,69 @@
+{
+  "generatedAt": "2026-02-14T15:34:31.468Z",
+  "mode": "deep",
+  "options": {
+    "mode": "deep",
+    "path": "D:\\",
+    "out": "./relatorios",
+    "maxDepth": 12,
+    "maxFiles": 30000,
+    "maxSizeMB": 40,
+    "includeExt": [
+      ".xlsx",
+      ".xlsm",
+      ".xls",
+      ".csv",
+      ".pdf"
+    ],
+    "excludeDirs": [
+      "Windows",
+      "Program Files",
+      "Program Files (x86)",
+      "ProgramData",
+      "$RECYCLE.BIN",
+      "System Volume Information",
+      "node_modules",
+      ".git"
+    ],
+    "keywords": [
+      "ordem",
+      "producao",
+      "processo",
+      "material",
+      "chapa",
+      "blank",
+      "plano de corte",
+      "laser",
+      "dobra",
+      "corte",
+      "espessura",
+      "orcamento",
+      "custo",
+      "preco"
+    ]
+  },
+  "totals": {
+    "filesIndexed": 1985,
+    "foldersRanked": 1086,
+    "opDetected": 933,
+    "opItems": 24814
+  },
+  "extensionDistribution": {
+    ".xlsx": {
+      "count": 1047,
+      "totalBytes": 30423174
+    },
+    ".pdf": {
+      "count": 918,
+      "totalBytes": 203203995
+    },
+    ".xls": {
+      "count": 18,
+      "totalBytes": 901120
+    },
+    ".xlsm": {
+      "count": 2,
+      "totalBytes": 168544
+    }
+  }
+}

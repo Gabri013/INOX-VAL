@@ -1,0 +1,39 @@
+{
+  "materialPatterns": [
+    { "materialName": "#304", "regex": "(^|[^0-9])304([^0-9]|$)" },
+    { "materialName": "#430", "regex": "(^|[^0-9])430([^0-9]|$)" },
+    { "materialName": "#316", "regex": "(^|[^0-9])316([^0-9]|$)" },
+    { "materialName": "GALV", "regex": "GALV|GALVAN" },
+    { "materialName": "ALUMINIO", "regex": "ALUM|ALUMIN" },
+    { "materialName": "ACO_CARBONO", "regex": "AISI|1020|ACO|AÇO|CARBONO" },
+    { "materialName": "INOX", "regex": "INOX|AISI\\s*30[0-9]" }
+  ],
+  "metalKeywords": [
+    "INOX",
+    "GALV",
+    "ALUM",
+    "ALUMIN",
+    "ACO",
+    "AÇO",
+    "AISI",
+    "#304",
+    "#430",
+    "#316"
+  ],
+  "cutProcessKeywords": [
+    "LASER",
+    "CORTE",
+    "PLASMA",
+    "CNC",
+    "PUNCION",
+    "PUNCH",
+    "OXICORTE",
+    "DOBRA"
+  ],
+  "thicknessRegexes": [
+    "(\\d+[\\.,]\\d+)",
+    "(?:(?:^|[^0-9])(\\d{1,2})(?:\\s*MM|\\s*mm|[^0-9]|$))"
+  ],
+  "thicknessMinMm": 0.2,
+  "thicknessMaxMm": 20
+}

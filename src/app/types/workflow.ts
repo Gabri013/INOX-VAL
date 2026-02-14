@@ -3,6 +3,7 @@
  */
 
 import type { ResultadoCalculadora } from '@/domains/calculadora/types';
+import type { OpPricingSnapshot } from '@/domains/precificacao/types/opPricing';
 
 // ========================================
 // TIPOS BASE
@@ -78,6 +79,8 @@ export interface Orcamento {
   desconto: number;
   total: number;
   observacoes?: string;
+  opPricingRunId?: string;
+  opPricingSnapshot?: OpPricingSnapshot;
   ordemId?: string;
   aprovadoEm?: Date | string;
   empresaId?: string;

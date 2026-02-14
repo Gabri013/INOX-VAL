@@ -1,0 +1,37 @@
+[
+  {
+    "processNamePattern": "LASER|CORTE LASER|PLASMA|OXICORTE|PUNCION|PUNCH|GUILHOTINA|CNC",
+    "category": "sheet",
+    "confidence": 0.95,
+    "priority": 100,
+    "active": true
+  },
+  {
+    "processNamePattern": "DOBRA|PRENSA|CALANDRA",
+    "category": "sheet",
+    "confidence": 0.75,
+    "priority": 80,
+    "active": true
+  },
+  {
+    "processNamePattern": "TUBO|PERFIL|CORTE TUBO|SERRA TUBO|CURVA TUBO",
+    "category": "tube",
+    "confidence": 0.9,
+    "priority": 90,
+    "active": true
+  },
+  {
+    "processNamePattern": "COMPRA|COMPRADO|TERCEIRIZADO|ACESSORIO|ACESSORIO COMPRADO",
+    "category": "purchase",
+    "confidence": 0.9,
+    "priority": 70,
+    "active": true
+  },
+  {
+    "processNamePattern": "MONTAGEM|SOLDA|ACABAMENTO|POLIMENTO|PINTURA",
+    "category": "other",
+    "confidence": 0.65,
+    "priority": 40,
+    "active": true
+  }
+]
