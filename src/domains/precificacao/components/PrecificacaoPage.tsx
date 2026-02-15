@@ -90,15 +90,52 @@ const isDocumentTooLargeError = (message: string) => {
   );
 };
 
-const inferDimensaoFromForm = (formData: any): string | undefined => {
-  const width = Number(formData.largura ?? formData.L ?? formData.w ?? formData.width);
-  const depth = Number(formData.profundidade ?? formData.W ?? formData.d ?? formData.depth ?? formData.comprimento);
-  const height = Number(formData.altura ?? formData.H ?? formData.h ?? formData.height);
+const pickFirstFinite = (...values: unknown[]) => {
+  for (const value of values) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return undefined;
+};
 
-  if (Number.isFinite(width) && Number.isFinite(depth) && Number.isFinite(height)) {
+const inferDimensaoFromForm = (formData: any): string | undefined => {
+  const width = pickFirstFinite(
+    formData.largura,
+    formData.L,
+    formData.w,
+    formData.width,
+    formData.porta?.largura,
+    formData.batente?.largura,
+    formData.cuba?.L
+  );
+
+  const depth = pickFirstFinite(
+    formData.profundidade,
+    formData.W,
+    formData.d,
+    formData.depth,
+    formData.comprimento,
+    formData.porta?.comprimento,
+    formData.batente?.comprimento,
+    formData.cuba?.W
+  );
+
+  const height = pickFirstFinite(
+    formData.altura,
+    formData.alturaFrontal,
+    formData.alturaPes,
+    formData.H,
+    formData.h,
+    formData.height,
+    formData.porta?.altura,
+    formData.batente?.altura,
+    formData.cuba?.H
+  );
+
+  if (width && depth && height) {
     return `${Math.round(width)}X${Math.round(depth)}X${Math.round(height)}`;
   }
-  if (Number.isFinite(width) && Number.isFinite(depth)) {
+  if (width && depth) {
     return `${Math.round(width)}X${Math.round(depth)}`;
   }
   return undefined;
@@ -247,9 +284,6 @@ export function PrecificacaoPage() {
       descricao: formData.descricao,
       dimensao: dimensaoManual,
       precoBaseAtual: quote.costs.priceSuggested,
-      temProjeto: true,
-      temBloco: true,
-      temRender: false,
     });
 
     return { kind: "default", quote, hybrid };
