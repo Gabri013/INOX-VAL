@@ -1,11 +1,13 @@
 import { DollarSign, Package, TrendingUp, AlertTriangle } from "lucide-react";
 import type { QuoteResultV2 } from "../domains/precificacao/engine/quoteV2";
+import type { HybridPricingResult } from "../types/hybridPricing";
 
 interface QuoteResultsProps {
   quote: QuoteResultV2;
+  hybrid?: HybridPricingResult;
 }
 
-export function QuoteResults({ quote }: QuoteResultsProps) {
+export function QuoteResults({ quote, hybrid }: QuoteResultsProps) {
   const formatMoney = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -42,6 +44,39 @@ export function QuoteResults({ quote }: QuoteResultsProps) {
           </p>
         </div>
       </div>
+
+      {hybrid && (
+        <div className="bg-primary/5 border border-primary/30 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-2">Precificação Híbrida (Histórico + Engenharia)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            <div>
+              <p className="text-muted-foreground">Preço Base Atual</p>
+              <p className="font-semibold">{formatMoney(hybrid.precoBaseAtual)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Fator Histórico</p>
+              <p className="font-semibold">{hybrid.breakdown.fatorHistorico.toFixed(4)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Confiança</p>
+              <p className="font-semibold uppercase">{hybrid.confianca}</p>
+            </div>
+          </div>
+
+          <div className="mt-3 text-sm">
+            <p className="text-muted-foreground">Faixa sugerida</p>
+            <p className="font-semibold">
+              {formatMoney(hybrid.precoMin)} · {formatMoney(hybrid.precoIdeal)} · {formatMoney(hybrid.precoMax)}
+            </p>
+          </div>
+
+          <ul className="mt-3 text-xs text-muted-foreground list-disc pl-5 space-y-1">
+            {hybrid.justificativa.map((item, idx) => (
+              <li key={idx}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Detalhamento de Custos */}
       <div>

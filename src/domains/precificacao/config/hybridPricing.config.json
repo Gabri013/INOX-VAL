@@ -1,0 +1,39 @@
+{
+  "defaultFactor": 1,
+  "fallbackRange": {
+    "min": 0.93,
+    "max": 1.08
+  },
+  "familiaFactors": {
+    "MOBILIARIO": 1.03,
+    "REDES": 1.05,
+    "REFRIGERACAO": 1.08,
+    "DISTRIBUICAO": 1.04,
+    "AUXILIARES": 1.02,
+    "COCCAO": 1.06,
+    "EXAUSTAO": 1.07,
+    "LINHA DELIVERY": 1.04,
+    "BAR": 1.02,
+    "PROTOTIPOS": 1.1
+  },
+  "subfamiliaFactors": {
+    "REFRIGERADOR": 1.08,
+    "FREEZER": 1.09,
+    "TAMPO": 1.03,
+    "COIFAS": 1.06,
+    "MESAS": 1.02,
+    "GABINETES": 1.05,
+    "ESTANTES": 1.03
+  },
+  "complexityBonus": {
+    "temProjeto": 0.2,
+    "temBloco": 0.1,
+    "temRender": 0.05
+  },
+  "dimensaoBands": [
+    { "maxMaiorLadoMm": 1000, "factor": 0.98 },
+    { "maxMaiorLadoMm": 1800, "factor": 1.02 },
+    { "maxMaiorLadoMm": 2600, "factor": 1.06 },
+    { "maxMaiorLadoMm": 10000, "factor": 1.1 }
+  ]
+}

@@ -38,6 +38,8 @@ import { sheetSpecsService } from "@/services/firestore/sheetSpecs.service";
 import { processRulesService } from "@/services/firestore/processRules.service";
 import { orcamentosService } from "@/services/firestore/orcamentos.service";
 import { precificacaoService } from "@/services/firestore/precificacao.service";
+import { hybridPricingService } from "../services/hybridPricing.service";
+import type { HybridPricingResult } from "../types/hybridPricing";
 
 const PRODUTOS: Array<{ id: ProdutoTipo; label: string }> = [
   { id: "bancadas", label: "Bancadas" },
@@ -55,7 +57,7 @@ const PRODUTOS: Array<{ id: ProdutoTipo; label: string }> = [
 ];
 
 type CalculationState =
-  | { kind: "default"; quote: QuoteResultV2 }
+  | { kind: "default"; quote: QuoteResultV2; hybrid?: HybridPricingResult }
   | {
       kind: "op";
       normalization: OpNormalizationResult;
@@ -86,6 +88,20 @@ const isDocumentTooLargeError = (message: string) => {
     normalized.includes("maximum") &&
     (normalized.includes("size") || normalized.includes("large") || normalized.includes("too big"))
   );
+};
+
+const inferDimensaoFromForm = (formData: any): string | undefined => {
+  const width = Number(formData.largura ?? formData.L ?? formData.w ?? formData.width);
+  const depth = Number(formData.profundidade ?? formData.W ?? formData.d ?? formData.depth ?? formData.comprimento);
+  const height = Number(formData.altura ?? formData.H ?? formData.h ?? formData.height);
+
+  if (Number.isFinite(width) && Number.isFinite(depth) && Number.isFinite(height)) {
+    return `${Math.round(width)}X${Math.round(depth)}X${Math.round(height)}`;
+  }
+  if (Number.isFinite(width) && Number.isFinite(depth)) {
+    return `${Math.round(width)}X${Math.round(depth)}`;
+  }
+  return undefined;
 };
 
 const buildOpTotals = (params: {
@@ -208,7 +224,35 @@ export function PrecificacaoPage() {
       });
     }
 
-    return { kind: "default", quote };
+    const dimensaoManual = (formData.historicoDimensao as string) || inferDimensaoFromForm(formData);
+    const produtoMap: Record<ProdutoTipo, string> = {
+      bancadas: "MOBILIARIO",
+      lavatorios: "MOBILIARIO",
+      prateleiras: "MOBILIARIO",
+      mesas: "MOBILIARIO",
+      estanteCantoneira: "MOBILIARIO",
+      estanteTubo: "MOBILIARIO",
+      coifas: "EXAUSTAO",
+      chapaPlana: "AUXILIARES",
+      materialRedondo: "AUXILIARES",
+      cantoneira: "AUXILIARES",
+      portasBatentes: "REFRIGERACAO",
+      ordemProducaoExcel: "AUXILIARES",
+    };
+
+    const hybrid = hybridPricingService.calculate({
+      codigo: formData.historicoCodigo,
+      familia: formData.historicoFamilia || produtoMap[produtoSelecionado],
+      subfamilia: formData.historicoSubfamilia,
+      descricao: formData.descricao,
+      dimensao: dimensaoManual,
+      precoBaseAtual: quote.costs.priceSuggested,
+      temProjeto: true,
+      temBloco: true,
+      temRender: false,
+    });
+
+    return { kind: "default", quote, hybrid };
   };
 
   const handleCalcularPorOp = async (): Promise<CalculationState | null> => {
@@ -457,6 +501,38 @@ export function PrecificacaoPage() {
                 <OrdemProducaoExcelForm formData={formData} setFormData={setFormData} />
               )}
 
+              {produtoSelecionado !== "ordemProducaoExcel" && (
+                <div className="mt-6 border border-border rounded-lg p-4 bg-muted/30">
+                  <h3 className="font-semibold text-foreground mb-3">Aprimorar com histórico (SolidWorks)</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      value={formData.historicoCodigo || ""}
+                      onChange={(e) => setFormData({ ...formData, historicoCodigo: e.target.value })}
+                      placeholder="Código (ex.: S154330)"
+                      className="px-3 py-2 rounded-md border border-border bg-background"
+                    />
+                    <input
+                      value={formData.historicoFamilia || ""}
+                      onChange={(e) => setFormData({ ...formData, historicoFamilia: e.target.value })}
+                      placeholder="Família (opcional)"
+                      className="px-3 py-2 rounded-md border border-border bg-background"
+                    />
+                    <input
+                      value={formData.historicoSubfamilia || ""}
+                      onChange={(e) => setFormData({ ...formData, historicoSubfamilia: e.target.value })}
+                      placeholder="Subfamília (opcional)"
+                      className="px-3 py-2 rounded-md border border-border bg-background"
+                    />
+                    <input
+                      value={formData.historicoDimensao || ""}
+                      onChange={(e) => setFormData({ ...formData, historicoDimensao: e.target.value })}
+                      placeholder="Dimensão (ex.: 1500X700X900)"
+                      className="px-3 py-2 rounded-md border border-border bg-background"
+                    />
+                  </div>
+                </div>
+              )}
+
               <button
                 onClick={handleCalcular}
                 className="mt-6 w-full bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
@@ -466,7 +542,7 @@ export function PrecificacaoPage() {
               </button>
             </div>
 
-            {result?.kind === "default" && <QuoteResults quote={result.quote} />}
+            {result?.kind === "default" && <QuoteResults quote={result.quote} hybrid={result.hybrid} />}
             {result?.kind === "op" && (
               <OpQuoteResults
                 normalization={result.normalization}
