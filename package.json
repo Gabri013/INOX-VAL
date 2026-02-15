@@ -14,6 +14,7 @@
     "disk-survey:build": "tsc -p tools/disk-survey/tsconfig.json",
     "disk-survey": "npm run disk-survey:build && node tools/disk-survey/dist/cli.js",
     "pricing:calibrate": "node scripts/calibrate-hybrid-pricing.mjs",
+    "pricing:validate": "node scripts/validate-hybrid-pricing.mjs",
     "preview": "vite preview",
     "seed": "node scripts/populate-firestore.js",
     "db:reset": "node scripts/db-reset.js",
