@@ -5,25 +5,56 @@
     "max": 1.08
   },
   "familiaFactors": {
-    "MOBILIARIO": 1.03,
-    "REDES": 1.05,
-    "REFRIGERACAO": 1.08,
-    "DISTRIBUICAO": 1.04,
-    "AUXILIARES": 1.02,
-    "COCCAO": 1.06,
-    "EXAUSTAO": 1.07,
-    "LINHA DELIVERY": 1.04,
-    "BAR": 1.02,
-    "PROTOTIPOS": 1.1
+    "MOBILIARIO": 1.12,
+    "REDES": 1.106,
+    "REFRIGERACAO": 1.105,
+    "DISTRIBUICAO": 1.102,
+    "AUXILIARES": 1.102,
+    "COCCAO": 1.096,
+    "EXAUSTAO": 1.085,
+    "LINHA DELIVERY": 1.084,
+    "BAR": 1.074,
+    "PROTOTIPOS": 1.067,
+    "ACESSORIOS": 1.063,
+    "0 ARQUIVOS": 1.039,
+    "MANUAIS": 1.015
   },
   "subfamiliaFactors": {
-    "REFRIGERADOR": 1.08,
-    "FREEZER": 1.09,
-    "TAMPO": 1.03,
-    "COIFAS": 1.06,
-    "MESAS": 1.02,
-    "GABINETES": 1.05,
-    "ESTANTES": 1.03
+    "MESAS": 1.08,
+    "ATACADAO": 1.078,
+    "REFRIGERADOR": 1.078,
+    "PRATELEIRA SUPERIOR": 1.075,
+    "CARROS": 1.073,
+    "GABINETES": 1.071,
+    "ESTANTES": 1.071,
+    "COIFAS": 1.07,
+    "GRELHA DE PISO": 1.07,
+    "SUBWAY": 1.069,
+    "LINHA AMERICANA": 1.068,
+    "TAMPO": 1.067,
+    "FREEZER": 1.061,
+    "MODULO EXPOSITOR": 1.061,
+    "LINHA PROFISSIONAL": 1.061,
+    "GUICHE": 1.06,
+    "PRATELEIRA": 1.055,
+    "CABECOTES": 1.054,
+    "BANCADA AQUECIDA": 1.053,
+    "MANIA DE CHURRASCO": 1.053,
+    "VITRINES": 1.053,
+    "LINHA INDUSTRIAL": 1.052,
+    "PISTAS": 1.052,
+    "ASSAI": 1.045,
+    "DUTOS": 1.043,
+    "ARMARIOS": 1.039,
+    "CONSERVADOR DE PROTEINAS": 1.036,
+    "MODULO BAR": 1.036,
+    "MINI KALZONE": 1.033,
+    "ESTUFAS": 1.033,
+    "MODULO CUBA GELO": 1.033,
+    "ACESSORIOS": 1.03,
+    "JAMERSON": 1.03,
+    "MINI CAMARA": 1.03,
+    "PASS THRU": 1.03
   },
   "complexityBonus": {
     "temProjeto": 0.2,
@@ -31,9 +62,21 @@
     "temRender": 0.05
   },
   "dimensaoBands": [
-    { "maxMaiorLadoMm": 1000, "factor": 0.98 },
-    { "maxMaiorLadoMm": 1800, "factor": 1.02 },
-    { "maxMaiorLadoMm": 2600, "factor": 1.06 },
-    { "maxMaiorLadoMm": 10000, "factor": 1.1 }
+    {
+      "maxMaiorLadoMm": 1000,
+      "factor": 0.98
+    },
+    {
+      "maxMaiorLadoMm": 1800,
+      "factor": 1.02
+    },
+    {
+      "maxMaiorLadoMm": 2600,
+      "factor": 1.06
+    },
+    {
+      "maxMaiorLadoMm": 10000,
+      "factor": 1.1
+    }
   ]
 }
