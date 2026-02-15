@@ -40,6 +40,7 @@ import { orcamentosService } from "@/services/firestore/orcamentos.service";
 import { precificacaoService } from "@/services/firestore/precificacao.service";
 import { hybridPricingService } from "../services/hybridPricing.service";
 import type { HybridPricingResult } from "../types/hybridPricing";
+import pricingProfiles from "../config/pricingProfiles.json";
 
 const PRODUTOS: Array<{ id: ProdutoTipo; label: string }> = [
   { id: "bancadas", label: "Bancadas" },
@@ -55,6 +56,22 @@ const PRODUTOS: Array<{ id: ProdutoTipo; label: string }> = [
   { id: "portasBatentes", label: "Portas e Batentes" },
   { id: "ordemProducaoExcel", label: "Precificação por OP" },
 ];
+
+type PricingProfile = {
+  label: string;
+  markup: number;
+  minMarginPct: number;
+  scrapMinPct: number;
+  overheadPercent: number;
+};
+
+type PricingProfilesConfig = {
+  defaultProfile: string;
+  profiles: Record<string, PricingProfile>;
+  produtoTipoToProfile: Record<string, string>;
+};
+
+const pricingProfilesConfig = pricingProfiles as PricingProfilesConfig;
 
 type CalculationState =
   | { kind: "default"; quote: QuoteResultV2; hybrid?: HybridPricingResult }
@@ -187,6 +204,10 @@ export function PrecificacaoPage() {
       historicoSubfamilia: formData.historicoSubfamilia || "",
       historicoDimensao: formData.historicoDimensao || "",
       urgencia: formData.urgencia || "normal",
+      pricingProfile:
+        formData.pricingProfile ||
+        pricingProfilesConfig.produtoTipoToProfile[produtoSelecionado] ||
+        pricingProfilesConfig.defaultProfile,
     };
     localStorage.setItem("precificacao_historico_prefill", JSON.stringify(payload));
   }, [
@@ -195,6 +216,8 @@ export function PrecificacaoPage() {
     formData.historicoSubfamilia,
     formData.historicoDimensao,
     formData.urgencia,
+    formData.pricingProfile,
+    produtoSelecionado,
   ]);
 
   const handleCalcularClassico = (): CalculationState | null => {
@@ -224,12 +247,19 @@ export function PrecificacaoPage() {
       return null;
     }
 
+    const mappedProfileId =
+      pricingProfilesConfig.produtoTipoToProfile[produtoSelecionado] || pricingProfilesConfig.defaultProfile;
+    const selectedProfileId = formData.pricingProfile || mappedProfileId;
+    const selectedProfile =
+      pricingProfilesConfig.profiles[selectedProfileId] ||
+      pricingProfilesConfig.profiles[pricingProfilesConfig.defaultProfile];
+
     const inoxKgPrice = toNumber(formData.precoKg ?? formData.precoKgInox, 45);
     const tubeKgPrice = toNumber(
       formData.precoKgTubo ?? formData.precoKgTuboPes ?? formData.precoKg ?? formData.precoKgInox,
       inoxKgPrice
     );
-    const overheadPercent = toPercent(formData.overheadPercent, 0);
+    const overheadPercent = toPercent(formData.overheadPercent, selectedProfile.overheadPercent);
 
     const tables = makeDefaultTables({
       inoxKgPrice,
@@ -240,8 +270,8 @@ export function PrecificacaoPage() {
     });
 
     const rules = {
-      markup: toNumber(formData.markup ?? formData.fatorVenda, 3),
-      minMarginPct: toPercent(formData.minMarginPct, 0.25),
+      markup: toNumber(formData.markup ?? formData.fatorVenda, selectedProfile.markup),
+      minMarginPct: toPercent(formData.minMarginPct, selectedProfile.minMarginPct),
     };
 
     const families = Array.from(new Set(bom.sheetParts.map((part) => part.family)));
@@ -254,7 +284,7 @@ export function PrecificacaoPage() {
         mode: formData.sheetMode || "auto",
         manualSheetId: formData.sheetMode === "manual" ? formData.sheetSelected : undefined,
         costMode: autoSheetCostMode,
-        scrapMinPct: toPercent(formData.scrapMinPct, 0.15),
+        scrapMinPct: toPercent(formData.scrapMinPct, selectedProfile.scrapMinPct),
       };
     }
 
@@ -511,7 +541,11 @@ export function PrecificacaoPage() {
                     key={produto.id}
                     onClick={() => {
                       setProdutoSelecionado(produto.id);
-                      setFormData({});
+                      setFormData({
+                        pricingProfile:
+                          pricingProfilesConfig.produtoTipoToProfile[produto.id] ||
+                          pricingProfilesConfig.defaultProfile,
+                      });
                       setResult(null);
                     }}
                     className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
@@ -568,6 +602,15 @@ export function PrecificacaoPage() {
                 <div className="mt-6 border border-border rounded-lg p-4 bg-muted/30">
                   <h3 className="font-semibold text-foreground mb-3">Aprimorar com histórico (SolidWorks)</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <select
+                      value={formData.pricingProfile || pricingProfilesConfig.produtoTipoToProfile[produtoSelecionado] || pricingProfilesConfig.defaultProfile}
+                      onChange={(e) => setFormData({ ...formData, pricingProfile: e.target.value })}
+                      className="px-3 py-2 rounded-md border border-border bg-background"
+                    >
+                      {Object.entries(pricingProfilesConfig.profiles).map(([id, profile]) => (
+                        <option key={id} value={id}>{profile.label}</option>
+                      ))}
+                    </select>
                     <input
                       value={formData.historicoCodigo || ""}
                       onChange={(e) => setFormData({ ...formData, historicoCodigo: e.target.value })}
