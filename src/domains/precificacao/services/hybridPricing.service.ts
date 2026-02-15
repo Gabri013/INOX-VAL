@@ -94,16 +94,47 @@ const buildHistoricalData = (): HistoricalRow[] => {
 
 const historicalData = buildHistoricalData();
 
-const getDimFactor = (dimensao?: string) => {
+const getRuntimeOverrides = () => {
+  try {
+    if (typeof window === "undefined") return null;
+    const raw = window.localStorage.getItem("hybrid_pricing_overrides");
+    if (!raw) return null;
+    return JSON.parse(raw) as {
+      familiaFactors?: Record<string, number>;
+      subfamiliaFactors?: Record<string, number>;
+    };
+  } catch {
+    return null;
+  }
+};
+
+const getEffectiveConfig = () => {
+  const overrides = getRuntimeOverrides();
+  if (!overrides) return hybridConfig;
+  return {
+    ...hybridConfig,
+    familiaFactors: {
+      ...hybridConfig.familiaFactors,
+      ...(overrides.familiaFactors || {}),
+    },
+    subfamiliaFactors: {
+      ...hybridConfig.subfamiliaFactors,
+      ...(overrides.subfamiliaFactors || {}),
+    },
+  };
+};
+
+const getDimFactor = (config: typeof hybridConfig, dimensao?: string) => {
   const parsed = parseDimension(dimensao);
   if (!parsed) return 1;
   const maxSide = Math.max(parsed.larguraMm, parsed.profundidadeMm, parsed.alturaMm || 0);
-  const band = hybridConfig.dimensaoBands.find((item) => maxSide <= item.maxMaiorLadoMm);
+  const band = config.dimensaoBands.find((item) => maxSide <= item.maxMaiorLadoMm);
   return band?.factor ?? 1;
 };
 
 export const hybridPricingService = {
   calculate(input: HybridPricingInput): HybridPricingResult {
+    const config = getEffectiveConfig();
     const code = normalizeText(input.codigo);
     const family = normalizeText(input.familia);
     const subfamily = normalizeText(input.subfamilia);
@@ -115,23 +146,23 @@ export const hybridPricingService = {
     const resolvedDimensao = input.dimensao || matchedByCode?.dimensao || "";
 
     const fatorFamilia =
-      hybridConfig.familiaFactors[resolvedFamily as keyof typeof hybridConfig.familiaFactors] ??
-      hybridConfig.defaultFactor;
+      config.familiaFactors[resolvedFamily as keyof typeof config.familiaFactors] ??
+      config.defaultFactor;
 
     const fatorSubfamilia =
-      hybridConfig.subfamiliaFactors[resolvedSubfamily as keyof typeof hybridConfig.subfamiliaFactors] ??
-      hybridConfig.defaultFactor;
+      config.subfamiliaFactors[resolvedSubfamily as keyof typeof config.subfamiliaFactors] ??
+      config.defaultFactor;
 
-    const fatorDimensao = getDimFactor(resolvedDimensao);
+    const fatorDimensao = getDimFactor(config, resolvedDimensao);
 
     const temProjeto = input.temProjeto ?? matchedByCode?.temProjeto ?? false;
     const temBloco = input.temBloco ?? matchedByCode?.temBloco ?? false;
     const temRender = input.temRender ?? matchedByCode?.temRender ?? false;
 
     const complexityBonus =
-      (temProjeto ? hybridConfig.complexityBonus.temProjeto : 0) +
-      (temBloco ? hybridConfig.complexityBonus.temBloco : 0) +
-      (temRender ? hybridConfig.complexityBonus.temRender : 0);
+      (temProjeto ? config.complexityBonus.temProjeto : 0) +
+      (temBloco ? config.complexityBonus.temBloco : 0) +
+      (temRender ? config.complexityBonus.temRender : 0);
 
     const fatorComplexidade = 1 + complexityBonus;
     const fatorUrgencia = input.urgencia === "super" ? 1.12 : input.urgencia === "urgente" ? 1.05 : 1;
@@ -139,8 +170,8 @@ export const hybridPricingService = {
     const fatorHistorico = clamp(fatorHistoricoRaw, 0.9, 1.45);
 
     const precoRecomendado = input.precoBaseAtual * fatorHistorico;
-    const precoMin = precoRecomendado * hybridConfig.fallbackRange.min;
-    const precoMax = precoRecomendado * hybridConfig.fallbackRange.max;
+    const precoMin = precoRecomendado * config.fallbackRange.min;
+    const precoMax = precoRecomendado * config.fallbackRange.max;
 
     const confidenceSignals = [Boolean(matchedByCode), Boolean(resolvedFamily), Boolean(parseDimension(resolvedDimensao))];
     const confidenceScore = confidenceSignals.filter(Boolean).length;

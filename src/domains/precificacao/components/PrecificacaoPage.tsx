@@ -131,6 +131,24 @@ const pickFirstFinite = (...values: unknown[]) => {
   return undefined;
 };
 
+const normalizeFamilyForProduto = (produto: ProdutoTipo) => {
+  const map: Record<ProdutoTipo, string> = {
+    bancadas: "MOBILIARIO",
+    lavatorios: "MOBILIARIO",
+    prateleiras: "MOBILIARIO",
+    mesas: "MOBILIARIO",
+    estanteCantoneira: "ESTRUTURA",
+    estanteTubo: "ESTRUTURA",
+    coifas: "EXAUSTAO",
+    chapaPlana: "AUXILIARES",
+    materialRedondo: "ESTRUTURA",
+    cantoneira: "ESTRUTURA",
+    portasBatentes: "REFRIGERACAO",
+    ordemProducaoExcel: "AUXILIARES",
+  };
+  return map[produto] || "AUXILIARES";
+};
+
 const inferDimensaoFromForm = (formData: any): string | undefined => {
   const width = pickFirstFinite(
     formData.largura,
@@ -498,6 +516,11 @@ export function PrecificacaoPage() {
       outputs: {
         custos: result.quote.costs,
         historico: result.hybrid,
+        contexto: {
+          familia: normalizeFamilyForProduto(produtoSelecionado),
+          subfamilia: (formData.historicoSubfamilia || "").toString().trim().toUpperCase(),
+          produtoTipo: produtoSelecionado,
+        },
         fechamento: {
           ...payload,
           deltaPercent: Number(
@@ -514,6 +537,64 @@ export function PrecificacaoPage() {
     }
 
     await carregarStatsFechamento();
+  };
+
+  const handleRecalibrarComFechamentos = async () => {
+    const runs = await precificacaoService.list({
+      where: [{ field: "mode", operator: "==", value: "classic" }],
+      orderBy: [{ field: "createdAt", direction: "desc" }],
+      limit: 200,
+    });
+
+    if (!runs.success || !runs.data) {
+      toast.error("Não foi possível carregar fechamentos para recalibrar.");
+      return;
+    }
+
+    const rows = runs.data.items
+      .map((item: any) => ({
+        familia: item?.outputs?.contexto?.familia,
+        precoIdeal: item?.outputs?.historico?.precoIdeal,
+        precoFechado: item?.outputs?.fechamento?.precoFechado,
+        status: item?.outputs?.fechamento?.status,
+      }))
+      .filter((r: any) => r.familia && r.precoIdeal > 0 && r.precoFechado > 0 && r.status === "ganho");
+
+    if (rows.length < 5) {
+      toast.warning("Amostra insuficiente para recalibração (mínimo 5 fechamentos ganhos).");
+      return;
+    }
+
+    const grouped = rows.reduce((acc: Record<string, { sum: number; count: number }>, row: any) => {
+      if (!acc[row.familia]) acc[row.familia] = { sum: 0, count: 0 };
+      acc[row.familia].sum += row.precoFechado / row.precoIdeal;
+      acc[row.familia].count += 1;
+      return acc;
+    }, {});
+
+    const existingOverridesRaw = localStorage.getItem("hybrid_pricing_overrides");
+    const existingOverrides = existingOverridesRaw ? JSON.parse(existingOverridesRaw) : {};
+    const familiaFactors = { ...(existingOverrides.familiaFactors || {}) };
+
+    Object.entries(grouped).forEach(([familia, stats]) => {
+      if (stats.count < 2) return;
+      const media = stats.sum / Math.max(stats.count, 1);
+      const ajuste = Math.max(0.97, Math.min(1.03, media));
+      const atualBase =
+        familiaFactors[familia] ||
+        (pricingProfilesConfig.profiles[pricingProfilesConfig.defaultProfile] ? 1 : 1);
+      familiaFactors[familia] = Number((atualBase * ajuste).toFixed(4));
+    });
+
+    const payload = {
+      ...existingOverrides,
+      familiaFactors,
+      updatedAt: new Date().toISOString(),
+      source: "pricing_runs_closing_feedback",
+    };
+
+    localStorage.setItem("hybrid_pricing_overrides", JSON.stringify(payload));
+    toast.success("Recalibração aplicada com base nos fechamentos ganhos.");
   };
 
   const handleSalvarOrcamentoOp = async () => {
@@ -761,6 +842,14 @@ export function PrecificacaoPage() {
                     <div className="text-muted-foreground">Erro médio vs recomendado</div>
                     <div className="text-lg font-semibold">{fechamentoStats.erroMedioPct}%</div>
                   </div>
+                </div>
+                <div className="mt-3">
+                  <button
+                    onClick={handleRecalibrarComFechamentos}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium"
+                  >
+                    Recalibrar fatores com fechamentos ganhos
+                  </button>
                 </div>
               </div>
             )}
