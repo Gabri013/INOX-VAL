@@ -26,6 +26,8 @@ export interface HybridPricingResult {
   precoIdeal: number;
   precoMax: number;
   confianca: "baixa" | "media" | "alta";
+  confiancaScore: number;
+  pendencias: string[];
   justificativa: string[];
   breakdown: HybridPricingBreakdown;
 }

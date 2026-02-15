@@ -145,6 +145,12 @@ export const hybridPricingService = {
     const confidenceScore = confidenceSignals.filter(Boolean).length;
 
     const confianca = confidenceScore >= 3 ? "alta" : confidenceScore === 2 ? "media" : "baixa";
+    const confiancaScore = Number(((confidenceScore / 3) * 100).toFixed(0));
+
+    const pendencias: string[] = [];
+    if (!matchedByCode) pendencias.push("Sem match por código histórico (Sxxxxxx).");
+    if (!resolvedFamily) pendencias.push("Família não informada/detectada.");
+    if (!parseDimension(resolvedDimensao)) pendencias.push("Dimensão ausente ou inválida (ex.: 1500X700X900).");
 
     const justificativa: string[] = [];
     if (matchedByCode) justificativa.push(`Histórico encontrado para código ${matchedByCode.codigo}.`);
@@ -167,6 +173,8 @@ export const hybridPricingService = {
       precoIdeal: round2(precoRecomendado),
       precoMax: round2(precoMax),
       confianca,
+      confiancaScore,
+      pendencias,
       justificativa,
       breakdown: {
         fatorFamilia: round4(fatorFamilia),

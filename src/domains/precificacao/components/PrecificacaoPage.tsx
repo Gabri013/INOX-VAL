@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Calculator } from "lucide-react";
 import { toast } from "sonner";
 import { buildBOMByTipo, type ProdutoTipo } from "../domains/precificacao/engine/bomBuilder";
@@ -168,6 +168,34 @@ export function PrecificacaoPage() {
   const [formData, setFormData] = useState<any>({});
   const [result, setResult] = useState<CalculationState | null>(null);
   const [savingOrcamento, setSavingOrcamento] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("precificacao_historico_prefill");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      setFormData((prev: any) => ({ ...prev, ...parsed }));
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    const payload = {
+      historicoCodigo: formData.historicoCodigo || "",
+      historicoFamilia: formData.historicoFamilia || "",
+      historicoSubfamilia: formData.historicoSubfamilia || "",
+      historicoDimensao: formData.historicoDimensao || "",
+      urgencia: formData.urgencia || "normal",
+    };
+    localStorage.setItem("precificacao_historico_prefill", JSON.stringify(payload));
+  }, [
+    formData.historicoCodigo,
+    formData.historicoFamilia,
+    formData.historicoSubfamilia,
+    formData.historicoDimensao,
+    formData.urgencia,
+  ]);
 
   const handleCalcularClassico = (): CalculationState | null => {
     if (produtoSelecionado === "bancadas" && formData.orcamentoTipo === "bancadaComCuba") {

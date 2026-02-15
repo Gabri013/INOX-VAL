@@ -119,7 +119,7 @@ export function QuoteResults({ quote, hybrid }: QuoteResultsProps) {
             </div>
             <div>
               <p className="text-muted-foreground">Confiança</p>
-              <p className="font-semibold uppercase">{hybrid.confianca}</p>
+              <p className="font-semibold uppercase">{hybrid.confianca} ({hybrid.confiancaScore}%)</p>
             </div>
           </div>
 
@@ -135,6 +135,17 @@ export function QuoteResults({ quote, hybrid }: QuoteResultsProps) {
               <li key={idx}>{item}</li>
             ))}
           </ul>
+
+          {hybrid.pendencias.length > 0 && (
+            <div className="mt-3 p-3 rounded-md border border-amber-300 bg-amber-50 text-amber-900">
+              <p className="text-xs font-semibold mb-1">Pendências para aumentar assertividade</p>
+              <ul className="text-xs list-disc pl-4 space-y-1">
+                {hybrid.pendencias.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
