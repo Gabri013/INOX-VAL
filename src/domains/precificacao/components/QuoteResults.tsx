@@ -1,4 +1,4 @@
-import { DollarSign, Package, TrendingUp, AlertTriangle } from "lucide-react";
+import { DollarSign, Package, TrendingUp, AlertTriangle, MessageCircle, ShieldCheck, CreditCard, Wrench } from "lucide-react";
 import type { QuoteResultV2 } from "../domains/precificacao/engine/quoteV2";
 import type { HybridPricingResult } from "../types/hybridPricing";
 
@@ -17,6 +17,25 @@ export function QuoteResults({ quote, hybrid }: QuoteResultsProps) {
 
   const formatPercent = (value: number) => {
     return `${(value * 100).toFixed(1)}%`;
+  };
+
+  const precoTecnico = quote.costs.costBase;
+  const precoComercial = hybrid?.precoIdeal ?? quote.costs.priceSuggested;
+
+  const buildWhatsAppText = () => {
+    const linhas = [
+      "Olá! Segue proposta preliminar:",
+      `• Preço técnico: ${formatMoney(precoTecnico)}`,
+      `• Preço comercial sugerido: ${formatMoney(precoComercial)}`,
+      hybrid ? `• Faixa sugerida: ${formatMoney(hybrid.precoMin)} a ${formatMoney(hybrid.precoMax)}` : "",
+      "Posso detalhar prazo, condições e itens inclusos.",
+    ].filter(Boolean);
+    return encodeURIComponent(linhas.join("\n"));
+  };
+
+  const handleWhatsAppShare = () => {
+    const url = `https://wa.me/?text=${buildWhatsAppText()}`;
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -43,6 +62,47 @@ export function QuoteResults({ quote, hybrid }: QuoteResultsProps) {
             Custo Base: <span className="font-semibold text-foreground">{formatMoney(quote.costs.costBase)}</span>
           </p>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="border border-border rounded-lg p-4 bg-muted/30">
+          <h3 className="font-semibold text-foreground mb-3">Resumo Comercial</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Preço Técnico</span>
+              <span className="font-semibold">{formatMoney(precoTecnico)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Preço Comercial Sugerido</span>
+              <span className="font-semibold text-success">{formatMoney(precoComercial)}</span>
+            </div>
+            {hybrid && (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Faixa Sugerida</span>
+                <span className="font-semibold">{formatMoney(hybrid.precoMin)} - {formatMoney(hybrid.precoMax)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="border border-border rounded-lg p-4 bg-muted/30">
+          <h3 className="font-semibold text-foreground mb-3">Diferenciais da Proposta</h3>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-primary" /> Construção em inox com precificação técnica rastreável</li>
+            <li className="flex items-center gap-2"><Wrench className="w-4 h-4 text-primary" /> Opções de customização por modelo e medida</li>
+            <li className="flex items-center gap-2"><CreditCard className="w-4 h-4 text-primary" /> Estrutura pronta para condições comerciais e fechamento</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={handleWhatsAppShare}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium"
+        >
+          <MessageCircle className="w-4 h-4" />
+          Compartilhar proposta no WhatsApp
+        </button>
       </div>
 
       {hybrid && (
