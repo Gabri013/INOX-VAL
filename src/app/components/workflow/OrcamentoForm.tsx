@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import type { Orcamento, ItemOrcamento } from '../../types/workflow';
 import type { CustosIndiretos, MargemLucroConfig } from '../../types/precificacao';
 import { validarPrecoMinimoOrcamento } from '@/domains/precificacao/precificacao.minimo';
+import { consultarBenchmarkMercado } from '@/domains/precificacao/benchmark';
 // Função para validar custos reais
 function validarCustosReais(itens: ItemOrcamento[]) {
   for (const item of itens) {
@@ -311,7 +312,9 @@ export function OrcamentoForm({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [benchmark, setBenchmark] = useState<{ precoMedio: number; fonte: string } | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!clienteNome.trim()) {
@@ -354,6 +357,18 @@ export function OrcamentoForm({
       return;
     }
 
+    // Consulta benchmark de mercado para o primeiro item (exemplo)
+    if (itensSanitizados.length > 0) {
+      const bench = await consultarBenchmarkMercado(itensSanitizados[0].modeloId);
+      setBenchmark(bench);
+      if (bench && total > bench.precoMedio * 1.15) {
+        toast.warning(`O preço sugerido está acima do mercado (${bench.fonte}: R$ ${bench.precoMedio.toFixed(2)}). Considere revisar o markup.`);
+      }
+      if (bench && total < bench.precoMedio * 0.7) {
+        toast.info(`O preço sugerido está bem abaixo do mercado (${bench.fonte}: R$ ${bench.precoMedio.toFixed(2)}).`);
+      }
+    }
+
     const orcamento: Omit<Orcamento, 'id' | 'numero'> = {
       clienteId: clienteId || `cliente-${Date.now()}`,
       clienteNome,
@@ -392,6 +407,7 @@ export function OrcamentoForm({
 
   return (
     <>
+      <UserPrecificacaoConfigPanel />
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="flex gap-2">
           <Button
@@ -723,7 +739,24 @@ export function OrcamentoForm({
           </div>
         )}
 
-        {/* Observacoes */}
+        {/* Comparativo de Mercado */}
+        {benchmark && (
+          <div className="p-4 bg-muted/30 rounded-lg mt-2">
+            <div className="font-semibold">Benchmark de Mercado ({benchmark.fonte}):</div>
+            <div>Preço Médio: <span className="font-mono">R$ {benchmark.precoMedio.toFixed(2)}</span></div>
+            <div>
+              {total > benchmark.precoMedio * 1.15 && (
+                <span className="text-destructive font-bold">Preço sugerido acima do mercado!</span>
+              )}
+              {total < benchmark.precoMedio * 0.7 && (
+                <span className="text-success font-bold">Preço sugerido abaixo do mercado.</span>
+              )}
+              {total <= benchmark.precoMedio * 1.15 && total >= benchmark.precoMedio * 0.7 && (
+                <span className="text-primary font-bold">Preço competitivo em relação ao mercado.</span>
+              )}
+            </div>
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="observacoes">Observacoes (opcional)</Label>
           <Textarea
@@ -743,7 +776,6 @@ export function OrcamentoForm({
           <Button type="submit">{submitLabel}</Button>
         </div>
       </form>
-
     </>
   );
 }
