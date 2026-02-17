@@ -147,11 +147,13 @@ export default function MinhasConfiguracoes() {
     }
   };
 
-  const updatePrecoMaterial = (material: TipoMaterialInox, preco: number) => {
+  // Permite atualizar qualquer campo do material
+  const updatePrecoMaterial = (material: TipoMaterialInox, patch: Partial<TabelaPrecosMaterial>) => {
     setPrecosMateriais(prev => ({
       ...prev,
       [material]: {
-        precoPorKg: preco,
+        ...prev[material],
+        ...patch,
         dataAtualizacao: Date.now(),
       },
     }));
@@ -237,8 +239,42 @@ export default function MinhasConfiguracoes() {
                       type="number"
                       step="0.01"
                       value={precosMateriais[material].precoPorKg}
-                      onChange={(e) => updatePrecoMaterial(material, parseFloat(e.target.value) || 0)}
-                      className="w-32"
+                      onChange={(e) => updatePrecoMaterial(material, { precoPorKg: parseFloat(e.target.value) || 0 })}
+                      className="w-20"
+                    />
+                    <Select
+                      value={precosMateriais[material].unidade || 'kg'}
+                      onValueChange={(v) => updatePrecoMaterial(material, { unidade: v as 'kg' | 'm' | 'm2' | 'un' })}
+                    >
+                      <SelectTrigger className="w-16">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="kg">kg</SelectItem>
+                        <SelectItem value="m2">m²</SelectItem>
+                        <SelectItem value="m">m</SelectItem>
+                        <SelectItem value="un">un</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">Scrap %</span>
+                    <Input
+                      type="number"
+                      step="1"
+                      min="0"
+                      max="50"
+                      value={precosMateriais[material].scrapPct ?? ''}
+                      onChange={(e) => updatePrecoMaterial(material, { scrapPct: parseInt(e.target.value) || 0 })}
+                      className="w-14"
+                    />
+                    <span className="text-sm text-muted-foreground">Markup %</span>
+                    <Input
+                      type="number"
+                      step="1"
+                      min="0"
+                      max="200"
+                      value={precosMateriais[material].markupPct ?? ''}
+                      onChange={(e) => updatePrecoMaterial(material, { markupPct: parseInt(e.target.value) || 0 })}
+                      className="w-14"
                     />
                   </div>
                 </div>

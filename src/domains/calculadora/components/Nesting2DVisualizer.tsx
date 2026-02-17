@@ -21,7 +21,7 @@ import { Maximize2, TrendingUp, Layers, ZoomIn, ZoomOut, Move, RotateCcw, Chevro
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
-import type { ResultadoNesting as ResultadoNestingBase } from '@/domains/calculadora';
+import type { ResultadoNesting as ResultadoNestingBase } from '../types';
 
 type ResultadoNesting = ResultadoNestingBase & {
   chapas?: Array<{

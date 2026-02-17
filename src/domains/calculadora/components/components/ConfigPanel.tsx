@@ -1,4 +1,4 @@
-import { DEFAULT_SHEET_CATALOG } from "../domains/precificacao/engine/defaultTables";
+import { DEFAULT_SHEET_CATALOG } from "../../domains/precificacao/engine/defaultTables";
 
 interface ConfigPanelProps {
   precoKgInox: number;

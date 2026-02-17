@@ -1,6 +1,15 @@
 import { useState, useEffect } from "react";
 import { FormField } from "./FormField";
 
+// Validação de campos numéricos
+function validateNumber(val: any, opts: { min?: number; max?: number; required?: boolean } = {}) {
+  if (opts.required && (val === undefined || val === null || val === "")) return "Campo obrigatório";
+  if (typeof val !== "number" || isNaN(val)) return "Valor inválido";
+  if (opts.min !== undefined && val < opts.min) return `Valor mínimo: ${opts.min}`;
+  if (opts.max !== undefined && val > opts.max) return `Valor máximo: ${opts.max}`;
+  return null;
+}
+
 interface BancadasFormProps {
   formData: any;
   setFormData: (data: any) => void;
@@ -8,6 +17,8 @@ interface BancadasFormProps {
 
 
 export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
+  // Estado de erros
+  const [errors, setErrors] = useState<any>({});
     // Garante que campos padrão industriais sempre estão presentes no formData
     useEffect(() => {
       const patch: any = {};
@@ -50,6 +61,14 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
 
   const update = (field: string, value: any) => {
     setFormData({ ...formData, [field]: value });
+    // Validação imediata
+    let err = null;
+    if (["comprimento", "largura", "espessuraChapa", "precoKgInox", "precoKgTuboPes", "precoKgTuboContraventamento", "fatorVenda", "scrapMinPct"].includes(field)) {
+      if (field === "scrapMinPct") err = validateNumber(value, { min: 0, max: 50, required: true });
+      else if (field === "fatorVenda") err = validateNumber(value, { min: 1, max: 20, required: true });
+      else err = validateNumber(value, { min: 1, max: 10000, required: true });
+    }
+    setErrors((prev: any) => ({ ...prev, [field]: err }));
   };
 
   const updateCuba = (field: string, value: any) => {
@@ -62,8 +81,13 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
   // Garantir valor padrão para orcamentoTipo
   const orcamentoTipo = formData.orcamentoTipo || "bancadaComCuba";
 
+  // Validação global para bloquear cálculo
+  const requiredFields = ["comprimento", "largura", "espessuraChapa", "precoKgInox", "precoKgTuboPes", "precoKgTuboContraventamento", "fatorVenda", "scrapMinPct"];
+  const hasErrors = requiredFields.some(f => errors[f]) || requiredFields.some(f => validateNumber(formData[f], { required: true, min: f === "scrapMinPct" ? 0 : 1 }) !== null);
+
   return (
-    <div className="space-y-4">
+    <>
+      <div className="space-y-4">
       {/* Configuração de Preços e Markup */}
       <div className="border border-blue-200 bg-blue-50 rounded-lg p-4 mb-4">
         <h3 className="text-sm font-semibold text-gray-900 mb-3">Configuração de Preços e Markup</h3>
@@ -73,45 +97,55 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
               type="text"
               inputMode="decimal"
               value={config.precoKgInox === 0 ? "" : config.precoKgInox ?? ""}
-              onChange={e => setConfig(c => ({ ...c, precoKgInox: parseInput(e.target.value) }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onChange={e => { setConfig(c => ({ ...c, precoKgInox: parseInput(e.target.value) })); update("precoKgInox", parseInput(e.target.value)); }}
+              className={`w-full px-3 py-2 border ${errors.precoKgInox ? "border-red-500" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+              placeholder="Ex: 45"
             />
+            {errors.precoKgInox && <div className="text-xs text-red-600 mt-1">{errors.precoKgInox}</div>}
           </FormField>
           <FormField label="Preço/kg Tubo dos Pés (R$)" required>
             <input
               type="text"
               inputMode="decimal"
               value={config.precoKgTuboPes === 0 ? "" : config.precoKgTuboPes ?? ""}
-              onChange={e => setConfig(c => ({ ...c, precoKgTuboPes: parseInput(e.target.value) }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onChange={e => { setConfig(c => ({ ...c, precoKgTuboPes: parseInput(e.target.value) })); update("precoKgTuboPes", parseInput(e.target.value)); }}
+              className={`w-full px-3 py-2 border ${errors.precoKgTuboPes ? "border-red-500" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+              placeholder="Ex: 45"
             />
+            {errors.precoKgTuboPes && <div className="text-xs text-red-600 mt-1">{errors.precoKgTuboPes}</div>}
           </FormField>
           <FormField label="Preço/kg Tubo Contraventamento (R$)" required>
             <input
               type="text"
               inputMode="decimal"
               value={config.precoKgTuboContraventamento === 0 ? "" : config.precoKgTuboContraventamento ?? ""}
-              onChange={e => setConfig(c => ({ ...c, precoKgTuboContraventamento: parseInput(e.target.value) }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onChange={e => { setConfig(c => ({ ...c, precoKgTuboContraventamento: parseInput(e.target.value) })); update("precoKgTuboContraventamento", parseInput(e.target.value)); }}
+              className={`w-full px-3 py-2 border ${errors.precoKgTuboContraventamento ? "border-red-500" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+              placeholder="Ex: 45"
             />
+            {errors.precoKgTuboContraventamento && <div className="text-xs text-red-600 mt-1">{errors.precoKgTuboContraventamento}</div>}
           </FormField>
           <FormField label="Fator de Venda (Markup)" required>
             <input
               type="text"
               inputMode="decimal"
               value={config.fatorVenda === 0 ? "" : config.fatorVenda ?? ""}
-              onChange={e => setConfig(c => ({ ...c, fatorVenda: parseInput(e.target.value) }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onChange={e => { setConfig(c => ({ ...c, fatorVenda: parseInput(e.target.value) })); update("fatorVenda", parseInput(e.target.value)); }}
+              className={`w-full px-3 py-2 border ${errors.fatorVenda ? "border-red-500" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+              placeholder="Ex: 3"
             />
+            {errors.fatorVenda && <div className="text-xs text-red-600 mt-1">{errors.fatorVenda}</div>}
           </FormField>
           <FormField label="Desperdício Mínimo (%)" required>
             <input
               type="text"
               inputMode="decimal"
               value={config.scrapMinPct === 0 ? "" : config.scrapMinPct ?? ""}
-              onChange={e => setConfig(c => ({ ...c, scrapMinPct: parseInput(e.target.value) }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onChange={e => { setConfig(c => ({ ...c, scrapMinPct: parseInput(e.target.value) })); update("scrapMinPct", parseInput(e.target.value)); }}
+              className={`w-full px-3 py-2 border ${errors.scrapMinPct ? "border-red-500" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+              placeholder="Ex: 15"
             />
+            {errors.scrapMinPct && <div className="text-xs text-red-600 mt-1">{errors.scrapMinPct}</div>}
           </FormField>
         </div>
         <div className="text-xs text-gray-600 mt-2">Esses valores são usados apenas neste orçamento.</div>
@@ -133,24 +167,28 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
       {/* Dimensões - apenas campos essenciais para Somente Tampo */}
       {orcamentoTipo === "somenteTampo" ? (
         <div className="grid grid-cols-2 gap-4">
-          <FormField label="Comprimento (mm)" required>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={formData.comprimento === 0 ? "" : formData.comprimento ?? ""}
-              onChange={(e) => update("comprimento", parseInput(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </FormField>
-          <FormField label="Largura (mm)" required>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={formData.largura === 0 ? "" : formData.largura ?? ""}
-              onChange={(e) => update("largura", parseInput(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </FormField>
+            <FormField label="Comprimento (mm)" required>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={formData.comprimento === 0 ? "" : formData.comprimento ?? ""}
+                onChange={(e) => update("comprimento", parseInput(e.target.value))}
+                className={`w-full px-3 py-2 border ${errors.comprimento ? "border-red-500" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                placeholder="Ex: 1200"
+              />
+              {errors.comprimento && <div className="text-xs text-red-600 mt-1">{errors.comprimento}</div>}
+            </FormField>
+            <FormField label="Largura (mm)" required>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={formData.largura === 0 ? "" : formData.largura ?? ""}
+                onChange={(e) => update("largura", parseInput(e.target.value))}
+                className={`w-full px-3 py-2 border ${errors.largura ? "border-red-500" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                placeholder="Ex: 600"
+              />
+              {errors.largura && <div className="text-xs text-red-600 mt-1">{errors.largura}</div>}
+            </FormField>
           <FormField label="Altura Frontal (mm)">
             <input
               type="text"
@@ -160,19 +198,21 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </FormField>
-          <FormField label="Espessura Chapa (mm)" required>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={formData.espessuraChapa === 0 ? "" : formData.espessuraChapa ?? ""}
-              onChange={(e) => update("espessuraChapa", parseInput(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </FormField>
+            <FormField label="Espessura Chapa (mm)" required>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={formData.espessuraChapa === 0 ? "" : formData.espessuraChapa ?? ""}
+                onChange={(e) => update("espessuraChapa", parseInput(e.target.value))}
+                className={`w-full px-3 py-2 border ${errors.espessuraChapa ? "border-red-500" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                placeholder="Ex: 1"
+              />
+              {errors.espessuraChapa && <div className="text-xs text-red-600 mt-1">{errors.espessuraChapa}</div>}
+            </FormField>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4">
-          {/* ...campos existentes para outros tipos... */}
+          {/* ...campos existentes para outros tipos, aplicar padrão acima se necessário... */}
           <FormField label="Comprimento (mm)" required>
             <input
               type="text"
@@ -362,6 +402,11 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
           </FormField>
         </div>
       )}
+      {/* Bloqueio global se houver erro */}
+      {hasErrors && (
+        <div className="text-red-600 text-sm font-semibold mt-2">Preencha todos os campos obrigatórios corretamente para calcular o orçamento.</div>
+      )}
     </div>
+    </>
   );
 }

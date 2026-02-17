@@ -15,15 +15,17 @@ export interface TabelaPrecosMaterial {
    * Preço por kg do material
    */
   precoPorKg: number;
-  
   /**
    * Preço por m² da chapa (opcional)
    */
   precoPorM2?: number;
-  
-  /**
-   * Última atualização do preço
-   */
+  /** Unidade padrão do material (kg, m, m2, un) */
+  unidade?: 'kg' | 'm' | 'm2' | 'un';
+  /** Scrap/desperdício mínimo (%) */
+  scrapPct?: number;
+  /** Markup individual (%) */
+  markupPct?: number;
+  /** Última atualização do preço */
   dataAtualizacao: number;
 }
 

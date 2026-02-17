@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Calculator, Settings } from "lucide-react";
-import { buildBOMByTipo, type ProdutoTipo } from "../domains/precificacao/engine/bomBuilder";
-import { makeDefaultTables } from "../domains/precificacao/engine/defaultTables";
-import { validateBeforeQuoteV2, quoteWithSheetSelectionV2, type SheetPolicy } from "../domains/precificacao/engine/quoteV2";
+import { buildBOMByTipo, type ProdutoTipo } from "../../domains/precificacao/engine/bomBuilder";
+import { makeDefaultTables } from "../../domains/precificacao/engine/defaultTables";
+import { validateBeforeQuoteV2, quoteWithSheetSelectionV2, type SheetPolicy } from "../../domains/precificacao/engine/quoteV2";
 import { toast } from "./ui/use-toast";
 import { BancadasForm } from "./forms/BancadasForm";
 import { LavatoriosForm } from "./forms/LavatoriosForm";

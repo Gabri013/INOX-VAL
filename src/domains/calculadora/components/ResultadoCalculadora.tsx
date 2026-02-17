@@ -6,7 +6,7 @@
 import { ResultadoCalculadora } from '../types';
 import { MODELOS_BOM } from '../../../bom/models';
 import { Package, Layers, DollarSign, TrendingUp, FileText, CheckCircle } from 'lucide-react';
-import { NestingVisualizer } from '../../nesting/components/NestingVisualizer';
+import { NestingVisualizer } from '../../../nesting/components/NestingVisualizer';
 
 interface ResultadoCalculadoraProps {
   resultado: ResultadoCalculadora;

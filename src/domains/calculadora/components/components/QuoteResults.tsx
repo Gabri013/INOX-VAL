@@ -1,5 +1,5 @@
 import { DollarSign, Package, TrendingUp, AlertTriangle } from "lucide-react";
-import type { QuoteResultV2 } from "../domains/precificacao/engine/quoteV2";
+import type { QuoteResultV2 } from "../../domains/precificacao/engine/quoteV2";
 
 interface QuoteResultsProps {
   quote: QuoteResultV2;
