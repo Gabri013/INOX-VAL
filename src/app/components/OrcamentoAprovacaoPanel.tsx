@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Card } from '../ui/card';
-import { Button } from '../ui/button';
+import { Card } from './ui/card';
+import { Button } from './ui/button';
 
 // Fluxo de aprovação/revisão de orçamentos
 export function OrcamentoAprovacaoPanel({
-  orcamento,
+  // orcamento,
   usuarios = [],
   onAprovar,
   onRejeitar,

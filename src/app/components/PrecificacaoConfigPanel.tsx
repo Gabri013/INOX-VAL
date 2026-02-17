@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { importarCustosExcel } from '@/domains/precificacao/importarCustosExcel';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Button } from '../ui/button';
-import { Card } from '../ui/card';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Button } from './ui/button';
+import { Card } from './ui/card';
 
 // Exemplo de painel de configuração de precificação
 export function PrecificacaoConfigPanel({
@@ -52,15 +52,15 @@ export function PrecificacaoConfigPanel({
       <div className="flex gap-4">
         <div>
           <Label>Produto/Categoria</Label>
-          <Input value={produto} onChange={e => setProduto(e.target.value)} placeholder="Ex: A, B, C" />
+          <Input value={produto} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProduto(e.target.value)} placeholder="Ex: A, B, C" />
         </div>
         <div>
           <Label>Preço Mínimo</Label>
-          <Input type="number" value={minimo} onChange={e => setMinimo(Number(e.target.value))} />
+          <Input type="number" value={minimo} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMinimo(Number(e.target.value))} />
         </div>
         <div>
           <Label>Margem (%)</Label>
-          <Input type="number" value={margem} onChange={e => setMargem(Number(e.target.value))} step="0.01" min="0" max="1" />
+          <Input type="number" value={margem} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMargem(Number(e.target.value))} step="0.01" min="0" max="1" />
         </div>
         <Button onClick={handleAdd}>Adicionar</Button>
       </div>

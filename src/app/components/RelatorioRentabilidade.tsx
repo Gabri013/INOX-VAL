@@ -1,4 +1,4 @@
-import { Card } from '../ui/card';
+import { Card } from './ui/card';
 import { formatCurrency } from '@/shared/lib/format';
 
 // Relatório de rentabilidade e margem por produto, cliente e período

@@ -1,4 +1,4 @@
-import { Card } from '../ui/card';
+import { Card } from './ui/card';
 import { formatCurrency } from '@/shared/lib/format';
 
 // Exemplo de relatório de performance de precificação

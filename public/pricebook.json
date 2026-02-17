@@ -1,0 +1,23 @@
+{
+  "versionId": "2026-02-16T00:00:00Z",
+  "prices": [
+    {
+      "materialId": "AISI304-1.5mm",
+      "supplierId": "inoxbr",
+      "price": 19.5,
+      "currency": "BRL",
+      "unit": "kg",
+      "quotedAt": "2026-02-01T00:00:00Z",
+      "validUntil": "2026-03-01T00:00:00Z"
+    },
+    {
+      "materialId": "AISI430-1.0mm",
+      "supplierId": "inoxbr",
+      "price": 15.2,
+      "currency": "BRL",
+      "unit": "kg",
+      "quotedAt": "2026-02-10T00:00:00Z",
+      "validUntil": "2026-03-10T00:00:00Z"
+    }
+  ]
+}

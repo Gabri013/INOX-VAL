@@ -1,3 +1,6 @@
+// Integração PriceBook
+import { resolveEffectiveCost } from '../../../../pricing/services/priceBook.service';
+import { buildEffectivePricingContext } from '../../../../pricing/context/effectivePricingContext';
 /* ========= QUOTE ENGINE V2 (com angleParts + chapa auto/manual) =========
    - sheetParts -> nesting -> custo por "área comprada" -> kg -> R$
    - tubeParts  -> metros * kg/m -> kg -> R$
@@ -330,12 +333,26 @@ export function quoteWithSheetSelectionV2(params: {
       // MODO "USADA": kg útil × (1 + scrapMinPct)
       const kgUsed = sheetKgFromAreaM2(nesting.areaUsedM2, thicknessMm, tables.densityKgPerM3);
       kgBought = kgUsed * (1 + policy.scrapMinPct);
-      costSheet = kgBought * tables.inoxKgPrice;
+      // Integração PriceBook: buscar preço real da chapa
+      const materialId = chosen?.id || 'inox_chapa';
+      const context = buildEffectivePricingContext({}, {}, {}, { versionId: 'v1' }); // TODO: passar contexto real
+      const precoKg = resolveEffectiveCost(materialId, context);
+      if (!precoKg) {
+        warnings.push(`Sem preço real para materialId ${materialId} (chapa) no PriceBook.`);
+      }
+      costSheet = kgBought * (precoKg || 0);
       warnings.push(`Família "${family}": modo USADO (kg útil + ${(policy.scrapMinPct * 100).toFixed(0)}% scrap). Sobra vira estoque.`);
     } else {
       // MODO "COMPRADA": área comprada × espessura × densidade
       kgBought = sheetKgFromAreaM2(nesting.areaBoughtM2, thicknessMm, tables.densityKgPerM3);
-      costSheet = kgBought * tables.inoxKgPrice;
+      // Integração PriceBook: buscar preço real da chapa
+      const materialId = chosen?.id || 'inox_chapa';
+      const context = buildEffectivePricingContext({}, {}, {}, { versionId: 'v1' }); // TODO: passar contexto real
+      const precoKg = resolveEffectiveCost(materialId, context);
+      if (!precoKg) {
+        warnings.push(`Sem preço real para materialId ${materialId} (chapa) no PriceBook.`);
+      }
+      costSheet = kgBought * (precoKg || 0);
     }
 
     nestingByGroup.push({
@@ -354,17 +371,20 @@ export function quoteWithSheetSelectionV2(params: {
   for (const t of bom.tubeParts) {
     const kgpm = Number(tables.tubeKgPerMeter[t.tubeKey]) || 0;
     if (t.meters > 0 && !(kgpm > 0)) warnings.push(`Sem kg/m para tubo "${t.tubeKey}".`);
-    // Preço/kg por tipo
-    let precoKg = tables.inoxKgPrice;
-    if (t.tubeKey === "tuboRedondo_38_1x1_2" && "tubeKgPricePes" in tables) precoKg = (tables as any).tubeKgPricePes;
-    if (t.tubeKey === "tuboRedondo_25_4x1_2" && "tubeKgPriceContraventamento" in tables) precoKg = (tables as any).tubeKgPriceContraventamento;
-    const custo = t.meters * kgpm * precoKg;
+    // Integração PriceBook: buscar materialId do tubo
+    const materialId = t.id || t.tubeKey;
+    const context = buildEffectivePricingContext({}, {}, {}, { versionId: 'v1' }); // TODO: passar contexto real
+    const precoKg = resolveEffectiveCost(materialId, context);
+    if (!precoKg) {
+      warnings.push(`Sem preço real para materialId ${materialId} (tubo ${t.tubeKey}) no PriceBook.`);
+    }
+    const custo = t.meters * kgpm * (precoKg || 0);
     costTubes += custo;
     tubeDetails.push({
       label: t.tubeKey === "tuboRedondo_38_1x1_2" ? "Tubo dos Pés (Ø38,1x1,2mm)" : t.tubeKey === "tuboRedondo_25_4x1_2" ? "Contraventamento (Ø25,4x1,2mm)" : t.tubeKey,
       metros: t.meters,
       kgpm,
-      precoKg,
+      precoKg: precoKg || 0,
       custo,
     });
   }
@@ -381,7 +401,16 @@ export function quoteWithSheetSelectionV2(params: {
   let costAccessories = 0;
   for (const a of bom.accessories) {
     const unit = Number(tables.accessoryUnitPrice[a.sku]) || 0;
-    if (a.qty > 0 && !(unit > 0)) warnings.push(`Sem preço para acessório "${a.sku}".`);
+    if (a.qty > 0 && !(unit > 0)) {
+      warnings.push(`Sem preço para acessório "${a.sku}".`);
+    }
+    // Integração PriceBook: warning se não houver preço real para o acessório
+    // Supondo que o SKU do acessório é o materialId
+    const { resolveEffectiveCost } = require('../../../../pricing/services/priceBook.service');
+    const precoAcessorio = resolveEffectiveCost(a.sku, {});
+    if (!precoAcessorio) {
+      warnings.push(`Sem preço real para acessório materialId ${a.sku} no PriceBook.`);
+    }
     costAccessories += a.qty * unit;
   }
 
@@ -389,7 +418,16 @@ export function quoteWithSheetSelectionV2(params: {
   let costProcesses = 0;
   for (const pr of bom.processes) {
     const cph = tables.processCostPerHour[pr.kind] ?? 0;
-    if (pr.minutes > 0 && !cph) warnings.push(`Sem custo/h para processo "${pr.kind}".`);
+    if (pr.minutes > 0 && !cph) {
+      warnings.push(`Sem custo/h para processo "${pr.kind}".`);
+    }
+    // Integração PriceBook: warning se não houver preço real para o processo
+    // Supondo que o kind do processo pode ser um materialId para pricebook
+    const { resolveEffectiveCost } = require('../../../../pricing/services/priceBook.service');
+    const precoProcesso = resolveEffectiveCost(pr.kind, {});
+    if (!precoProcesso) {
+      warnings.push(`Sem preço real para processo materialId ${pr.kind} no PriceBook.`);
+    }
     costProcesses += (pr.minutes / 60) * cph;
   }
 

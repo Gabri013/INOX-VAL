@@ -1,781 +1,370 @@
-/**
- * Formulario de Orcamento
- * - Manual (descricao/codigo/quantidade)
- * - Importacao OMEI (PDF)
- */
-
-import { useEffect, useState } from 'react';
-import { Trash2, Calculator } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
+import type { PriceEntry } from '@/domains/pricing/types/priceBook.types';
+import type { Orcamento } from '@/app/types/workflow';
+import type { EffectivePricingContext } from '@/domains/pricing/context/effectivePricingContext';
+import modelosCatalogo from '@/domains/precificacao/modelosCatalogo.json';
+import { listMaterials } from '@/domains/materials/services/materialCatalog.service';
+import { getLatestPriceBook, getBestPrice } from '@/domains/pricing/services/priceBook.service';
+import { Card } from '../ui/card';
+import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import type { Orcamento, ItemOrcamento } from '../../types/workflow';
-import type { CustosIndiretos, MargemLucroConfig } from '../../types/precificacao';
-import { validarPrecoMinimoOrcamento } from '@/domains/precificacao/precificacao.minimo';
-import { consultarBenchmarkMercado } from '@/domains/precificacao/benchmark';
-// Função para validar custos reais
-function validarCustosReais(itens: ItemOrcamento[]) {
-  for (const item of itens) {
-    if (!item.precoUnitario || item.precoUnitario === 0 || item.precoUnitario === undefined || item.precoUnitario === null) {
-      return { valido: false, alerta: `O item '${item.modeloNome || item.descricao}' não possui custo real comprovado.` };
-    }
-    if (!item.origemCusto || !item.dataAtualizacaoCusto) {
-      return { valido: false, alerta: `O item '${item.modeloNome || item.descricao}' precisa informar origem e data de atualização do custo.` };
-    }
-  }
-  return { valido: true };
-}
-  // Custos indiretos e margem de lucro
-  const [custosIndiretos, setCustosIndiretos] = useState<CustosIndiretos>({ frete: 0, impostos: 0, outros: 0 });
-  const [margemLucro, setMargemLucro] = useState<MargemLucroConfig>({ percentual: 0.15, minimoAbsoluto: 50 });
-import { formatCurrency } from '@/shared/lib/format';
-import { parseOmeiText } from '@/app/lib/omeiImport';
-import { useSaldosEstoque } from '@/domains/estoque';
-import type { SaldoEstoque } from '@/domains/estoque/estoque.types';
+// ================= NOVA IMPLEMENTAÇÃO ORCAMENTOFORM =================
+
+type Step =
+	| 'STEP_SELECT_PRODUCT'
+	| 'STEP_SELECT_PROFILE'
+	| 'STEP_SELECT_PRICEBOOK'
+	| 'STEP_INPUT_DATA'
+	| 'STEP_REVIEW_COST'
+	| 'STEP_RESULT';
 
 interface OrcamentoFormProps {
-  onSubmit: (orcamento: Omit<Orcamento, 'id' | 'numero'>) => void;
-  onCancel: () => void;
-  initialMode?: 'manual' | 'omei';
-  initialData?: Orcamento | null;
-  submitLabel?: string;
+	onSubmit: (orcamento: Omit<Orcamento, 'id' | 'numero'>) => void;
+	onCancel: () => void;
+	initialData?: Orcamento | null;
+	submitLabel?: string;
 }
 
-async function extractTextFromPdf(file: File) {
-  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-  const workerSrc = new URL(
-    'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
-    import.meta.url
-  ).toString();
-  (pdfjs as any).GlobalWorkerOptions.workerSrc = workerSrc;
+interface Diagnostics {
+	missingPrices: string[];
+	warnings: string[];
+	errors: string[];
+}
 
-  const data = await file.arrayBuffer();
-  const loadingTask = (pdfjs as any).getDocument({ data });
-  const pdf = await loadingTask.promise;
-  let text = '';
-
-  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum += 1) {
-    const page = await pdf.getPage(pageNum);
-    const content = await page.getTextContent();
-    const pageText = content.items.map((item: any) => item.str).join(' ');
-    text += `\n${pageText}`;
-  }
-
-  return text;
+interface PricingConfigState extends Partial<EffectivePricingContext> {
+	source: 'user' | 'tenant' | 'default' | 'market';
+	updatedAt: string;
 }
 
 export function OrcamentoForm({
-  onSubmit,
-  onCancel,
-  initialMode = 'manual',
-  initialData = null,
-  submitLabel = 'Criar Orcamento',
+	onSubmit,
+	onCancel,
+	initialData,
+	submitLabel = 'Salvar Orçamento',
 }: OrcamentoFormProps) {
-  const toSafeNumber = (value: unknown, fallback = 0) => {
-    const numeric = typeof value === 'number' ? value : Number(value);
-    return Number.isFinite(numeric) ? numeric : fallback;
-  };
+	// Steps
+	const [step, setStep] = useState<Step>(initialData ? 'STEP_REVIEW_COST' : 'STEP_SELECT_PRODUCT');
+	// Produto/modelo
+	const [selectedProductType, setSelectedProductType] = useState<string>('');
+	const [selectedModelId, setSelectedModelId] = useState<string>('');
+	// Perfil/config
+	const [selectedProfileId, setSelectedProfileId] = useState<string>('');
+	const [selectedPriceBookVersionId, setSelectedPriceBookVersionId] = useState<string>('');
+	// Config de precificação
+	const [pricingConfig, setPricingConfig] = useState<PricingConfigState>({
+		source: 'market',
+		updatedAt: new Date().toISOString(),
+		markup: 1.5,
+		overheadPercent: 0.03,
+		scrapPercent: 0.01,
+		laborCostPerHour: 50,
+		riskFactor: 0.05,
+		priceBookVersionId: '',
+		region: 'BR',
+		supplierPreferences: {},
+		profileId: '',
+		tenantId: '',
+	});
+	// Dados do produto
+	const [formData, setFormData] = useState<any>({});
+	// Diagnóstico
+	const [diagnostics, setDiagnostics] = useState<Diagnostics>({ missingPrices: [], warnings: [], errors: [] });
+	// Resultado do orçamento
 
-  const sanitizeItem = (item: ItemOrcamento): ItemOrcamento => {
-    const quantidade = Math.max(0.01, toSafeNumber(item.quantidade, 1));
-    const precoUnitario = Math.max(0, toSafeNumber(item.precoUnitario, 0));
 
-    return {
-      ...item,
-      quantidade,
-      precoUnitario,
-      subtotal: quantidade * precoUnitario,
-    };
-  };
+	// Efeito: atualizar pricebook versionId (async)
+	useEffect(() => {
+		(async () => {
+			const pb = await getLatestPriceBook();
+			setPricingConfig((prev) => ({ ...prev, priceBookVersionId: pb.versionId }));
+		})();
+	}, []);
 
-  const mergeOrAppendItem = (nextItem: ItemOrcamento) => {
-    const normalizedNext = sanitizeItem(nextItem);
+	// Sugestão automática de materiais por modelo (async)
+	type SuggestedMaterial = {
+		label: string;
+		materialId?: string;
+		price?: number;
+		priceEntry?: PriceEntry;
+		warnings?: string[];
+	};
+	const [suggestedMaterials, setSuggestedMaterials] = useState<SuggestedMaterial[]>([]);
+	const [loadingMaterials, setLoadingMaterials] = useState(false);
+	useEffect(() => {
+		let alive = true;
+		async function fetchMaterials() {
+			if (!selectedModelId) {
+				setSuggestedMaterials([]);
+				return;
+			}
+			setLoadingMaterials(true);
+			try {
+				const modelo = (modelosCatalogo as any[]).find((m) => m.codigo === selectedModelId);
+				if (!modelo) {
+					setSuggestedMaterials([]);
+					setLoadingMaterials(false);
+					return;
+				}
+				const allMaterials = listMaterials();
+				const found: SuggestedMaterial[] = [];
+				for (const comp of modelo.componentes || []) {
+					const match = comp.match(/['"]([A-Za-z0-9\-_. ]+)['"]/);
+					const query = match ? match[1] : comp;
+					const foundMat = allMaterials.find((mat) => mat.materialId === query || mat.swName.includes(query));
+					if (!foundMat) {
+						found.push({ label: query, warnings: ['Material não encontrado no catálogo'] });
+						continue;
+					}
+					const context: EffectivePricingContext = {
+						tenantId: pricingConfig.tenantId || '',
+						profileId: pricingConfig.profileId || '',
+						region: pricingConfig.region || 'BR',
+						supplierPreferences: pricingConfig.supplierPreferences || {},
+						markup: pricingConfig.markup ?? 1.0,
+						overheadPercent: pricingConfig.overheadPercent ?? 0.03,
+						scrapPercent: pricingConfig.scrapPercent ?? 0.01,
+						laborCostPerHour: pricingConfig.laborCostPerHour ?? 50,
+						riskFactor: pricingConfig.riskFactor ?? 0.05,
+						priceBookVersionId: pricingConfig.priceBookVersionId || '',
+					};
+					const priceEntry = await getBestPrice(foundMat.materialId, context);
+					const price = priceEntry?.price;
+					const warnings: string[] = [];
+					if (priceEntry) {
+						if (priceEntry.validUntil && Date.parse(priceEntry.validUntil) < Date.now()) {
+							warnings.push('Preço expirado');
+						}
+						if (priceEntry.unit && priceEntry.unit !== 'kg') {
+							warnings.push(`Unidade divergente: ${priceEntry.unit}`);
+						}
+					}
+					found.push({ label: foundMat.swName, materialId: foundMat.materialId, price, priceEntry, warnings: warnings.length ? warnings : undefined });
+				}
+				if (alive) setSuggestedMaterials(found);
+			} catch (e) {
+				setSuggestedMaterials([]);
+			} finally {
+				if (alive) setLoadingMaterials(false);
+			}
+		}
+		fetchMaterials();
+		return () => { alive = false; };
+	}, [selectedModelId, pricingConfig]);
 
-    setItens((prev) => {
-      const mergeIndex = prev.findIndex((existing) => {
-        const sameCodigo = (existing.modeloId || '').trim().toLowerCase() === (normalizedNext.modeloId || '').trim().toLowerCase();
-        const sameDescricao = (existing.descricao || '').trim().toLowerCase() === (normalizedNext.descricao || '').trim().toLowerCase();
-        const samePreco = Math.abs((existing.precoUnitario || 0) - normalizedNext.precoUnitario) < 0.0001;
-        return sameCodigo && sameDescricao && samePreco;
-      });
+	// Diagnóstico de preços faltantes
+	useEffect(() => {
+		if (!suggestedMaterials.length) {
+			setDiagnostics((prev) => ({ ...prev, missingPrices: [] }));
+			return;
+		}
+		const missing = suggestedMaterials.filter((m) => !m.materialId || !m.price).map((m) => m.label);
+		setDiagnostics((prev) => ({ ...prev, missingPrices: missing }));
+	}, [suggestedMaterials]);
 
-      if (mergeIndex < 0) return [...prev, normalizedNext];
+	// Wizard steps
+	function renderStep() {
+		switch (step) {
+			case 'STEP_SELECT_PRODUCT':
+				return (
+					<Card className="p-6 mb-4">
+						<Label>Selecione o tipo de produto</Label>
+						<Select value={selectedProductType} onValueChange={setSelectedProductType}>
+							<SelectTrigger><SelectValue placeholder="Tipo de produto" /></SelectTrigger>
+							<SelectContent>
+								{(modelosCatalogo as any[]).map((m) => (
+									<SelectItem key={m.codigo} value={m.codigo}>{m.nome}</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						<div className="mt-4 flex gap-2">
+							<Button disabled={!selectedProductType} onClick={() => { setSelectedModelId(selectedProductType); setStep('STEP_SELECT_PROFILE'); }}>Avançar</Button>
+							<Button variant="outline" onClick={onCancel}>Cancelar</Button>
+						</div>
+					</Card>
+				);
+			case 'STEP_SELECT_PROFILE':
+				return (
+					<Card className="p-6 mb-4">
+						<Label>Selecione o perfil de precificação</Label>
+						<Input value={selectedProfileId} onChange={e => setSelectedProfileId(e.target.value)} placeholder="ID do perfil ou nome" />
+						<div className="mt-4 flex gap-2">
+							<Button onClick={() => setStep('STEP_SELECT_PRICEBOOK')}>Avançar</Button>
+							<Button variant="outline" onClick={() => setStep('STEP_SELECT_PRODUCT')}>Voltar</Button>
+						</div>
+					</Card>
+				);
+			case 'STEP_SELECT_PRICEBOOK':
+				return (
+					<Card className="p-6 mb-4">
+						<Label>Versão do PriceBook</Label>
+						<Input value={selectedPriceBookVersionId} onChange={e => setSelectedPriceBookVersionId(e.target.value)} placeholder="ID da versão" />
+						<div className="mt-4 flex gap-2">
+							<Button onClick={() => setStep('STEP_INPUT_DATA')}>Avançar</Button>
+							<Button variant="outline" onClick={() => setStep('STEP_SELECT_PROFILE')}>Voltar</Button>
+						</div>
+					</Card>
+				);
+			case 'STEP_INPUT_DATA':
+				return (
+					<Card className="p-6 mb-4">
+						<Label>Dados do Produto</Label>
+						<Input value={formData.nome || ''} onChange={e => setFormData((f: any) => ({ ...f, nome: e.target.value }))} placeholder="Nome do produto" />
+						<Input className="mt-2" value={formData.qtd || ''} onChange={e => setFormData((f: any) => ({ ...f, qtd: e.target.value }))} placeholder="Quantidade" type="number" />
+						<div className="mt-4 flex gap-2">
+							<Button onClick={() => setStep('STEP_REVIEW_COST')}>Avançar</Button>
+							<Button variant="outline" onClick={() => setStep('STEP_SELECT_PRICEBOOK')}>Voltar</Button>
+						</div>
+					</Card>
+				);
+			case 'STEP_REVIEW_COST':
+				return (
+					<Card className="p-6 mb-4">
+						<div className="mb-2 font-semibold">Revisão de Materiais Sugeridos</div>
+						{loadingMaterials ? (
+							<div className="mt-4 text-muted-foreground">Carregando materiais e preços…</div>
+						) : (
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+								{suggestedMaterials.map((mat, i) => (
+									<div key={i} className="border rounded p-2 bg-muted/30">
+										<div><b>{mat.label}</b></div>
+										{mat.materialId && mat.priceEntry && (
+											<div className="text-xs text-muted-foreground">
+												Preço: R$ {mat.priceEntry.price?.toFixed(2)} ({mat.priceEntry.unit})<br />
+												Fornecedor: {mat.priceEntry.supplierId}<br />
+												Fonte: {mat.priceEntry.source} | Validade: {mat.priceEntry.validUntil || mat.priceEntry.quotedAt}<br />
+												Confiança: {mat.priceEntry.confidence}
+											</div>
+										)}
+										{!mat.price && <div className="text-xs text-destructive">Sem preço real no PriceBook</div>}
+										{mat.warnings && mat.warnings.length > 0 && (
+											<ul className="text-amber-700 text-xs mt-1">
+												{mat.warnings.map((w, j) => <li key={j}>⚠️ {w}</li>)}
+											</ul>
+										)}
+									</div>
+								))}
+							</div>
+						)}
+						{diagnostics.missingPrices.length > 0 && (
+							<div className="mt-4 text-destructive">
+								<b>Materiais sem preço real:</b> {diagnostics.missingPrices.join(', ')}<br />
+								<Button variant="outline" className="mt-2" onClick={() => setStep('STEP_SELECT_PRICEBOOK')}>Abrir PriceBook / Importar CSV</Button>
+							</div>
+						)}
+						<div className="mt-4 flex gap-2">
+							<Button disabled={loadingMaterials || diagnostics.missingPrices.length > 0 || diagnostics.errors.length > 0} onClick={() => setStep('STEP_RESULT')}>Avançar</Button>
+							<Button variant="outline" onClick={() => setStep('STEP_INPUT_DATA')}>Voltar</Button>
+						</div>
+						{diagnostics.errors.length > 0 && (
+							<div className="mt-2 text-destructive text-xs">{diagnostics.errors.join(' | ')}</div>
+						)}
+					</Card>
+				);
+			case 'STEP_RESULT':
+				return (
+					<Card className="p-6 mb-4">
+						<div className="mb-2 font-semibold">Resumo do Orçamento</div>
+						<div>Produto: <b>{formData.nome}</b></div>
+						<div>Modelo: <b>{selectedModelId}</b></div>
+						<div>Perfil: <b>{selectedProfileId}</b></div>
+						<div>Versão PriceBook: <b>{selectedPriceBookVersionId}</b></div>
+						<div className="mt-2">Materiais:</div>
+						<ul className="list-disc ml-6">
+							{suggestedMaterials.map((mat, i) => (
+								<li key={i}>{mat.label} {mat.price ? `- R$ ${mat.price.toFixed(2)}` : '(sem preço)'}</li>
+							))}
+						</ul>
+						<div className="mt-4 flex gap-2">
+							<Button onClick={() => {
+								// Monta objeto Orcamento e envia
+								const orcamento: Omit<Orcamento, 'id' | 'numero'> = {
+									clienteNome: '',
+									clienteId: '',
+									data: new Date(),
+									validade: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+									status: 'Aguardando Aprovacao',
+									itens: suggestedMaterials.map((mat, i) => ({
+										id: mat.materialId || `mat-${i}`,
+										modeloId: selectedModelId,
+										modeloNome: formData.nome || '',
+										descricao: mat.label,
+										quantidade: Number(formData.qtd) || 1,
+										precoUnitario: mat.price || 0,
+										subtotal: (mat.price || 0) * (Number(formData.qtd) || 1),
+										origemCusto: mat.priceEntry?.source || '',
+										dataAtualizacaoCusto: mat.priceEntry?.quotedAt || '',
+									})),
+									subtotal: suggestedMaterials.reduce((sum, mat) => sum + ((mat.price || 0) * (Number(formData.qtd) || 1)), 0),
+									desconto: 0,
+									total: suggestedMaterials.reduce((sum, mat) => sum + ((mat.price || 0) * (Number(formData.qtd) || 1)), 0),
+									observacoes: `priceBookVersionId: ${selectedPriceBookVersionId}; effectiveContext: ${JSON.stringify(pricingConfig)}; missingPrices: ${diagnostics.missingPrices.join(', ')}; warnings: ${diagnostics.warnings.join(', ')}`,
+								};
+								onSubmit(orcamento);
+							}}>{submitLabel}</Button>
+							<Button variant="outline" onClick={onCancel}>Cancelar</Button>
+						</div>
+					</Card>
+				);
+			default:
+				return null;
+		}
+	}
 
-      const merged = [...prev];
-      const itemAtual = sanitizeItem(merged[mergeIndex]);
-      const quantidade = itemAtual.quantidade + normalizedNext.quantidade;
-      merged[mergeIndex] = {
-        ...itemAtual,
-        quantidade,
-        subtotal: quantidade * itemAtual.precoUnitario,
-      };
-      return merged;
-    });
-  };
-  const [mode, setMode] = useState<'manual' | 'omei'>(initialMode);
-  const [clienteNome, setClienteNome] = useState('');
-  const [clienteId, setClienteId] = useState('');
-  const [validade, setValidade] = useState(15); // dias
-  const [desconto, setDesconto] = useState(0);
-  const [observacoes, setObservacoes] = useState('');
-  const [itens, setItens] = useState<ItemOrcamento[]>([]);
-  const [dataEmissao, setDataEmissao] = useState<Date | null>(null);
-  const [importFile, setImportFile] = useState<File | null>(null);
-  const [importing, setImporting] = useState(false);
-  const [importError, setImportError] = useState<string | null>(null);
-  const { data: saldos = [] } = useSaldosEstoque();
-  const [manualItem, setManualItem] = useState({
-    codigo: '',
-    descricao: '',
-    quantidade: 1,
-    precoUnitario: 0,
-  });
-  const [estoqueItemId, setEstoqueItemId] = useState('');
-  const [estoqueQuantidade, setEstoqueQuantidade] = useState(1);
-  const [estoquePrecoUnitario, setEstoquePrecoUnitario] = useState(0);
+	// Config Card sempre visível
+	function renderConfigCard() {
+		return (
+			<Card className="p-6 mb-4">
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<div>
+						<Label>Perfil</Label>
+						<Input value={selectedProfileId} onChange={e => setSelectedProfileId(e.target.value)} placeholder="ID do perfil" />
+					</div>
+					<div>
+						<Label>Região</Label>
+						<Input value={pricingConfig.region || ''} onChange={e => setPricingConfig((c) => ({ ...c, region: e.target.value }))} placeholder="Região" />
+					</div>
+					<div>
+						<Label>Markup</Label>
+						<Input type="number" value={pricingConfig.markup || 1} onChange={e => setPricingConfig((c) => ({ ...c, markup: Number(e.target.value) }))} min={1} step={0.01} />
+					</div>
+					<div>
+						<Label>Overhead (%)</Label>
+						<Input type="number" value={pricingConfig.overheadPercent || 0} onChange={e => setPricingConfig((c) => ({ ...c, overheadPercent: Number(e.target.value) }))} min={0} max={1} step={0.01} />
+					</div>
+					<div>
+						<Label>Scrap (%)</Label>
+						<Input type="number" value={pricingConfig.scrapPercent || 0} onChange={e => setPricingConfig((c) => ({ ...c, scrapPercent: Number(e.target.value) }))} min={0} max={1} step={0.01} />
+					</div>
+					<div>
+						<Label>Custo/h Mão de Obra</Label>
+						<Input type="number" value={pricingConfig.laborCostPerHour || 0} onChange={e => setPricingConfig((c) => ({ ...c, laborCostPerHour: Number(e.target.value) }))} min={0} step={1} />
+					</div>
+					<div>
+						<Label>Risco (%)</Label>
+						<Input type="number" value={pricingConfig.riskFactor || 0} onChange={e => setPricingConfig((c) => ({ ...c, riskFactor: Number(e.target.value) }))} min={0} max={1} step={0.01} />
+					</div>
+					<div>
+						<Label>Versão PriceBook</Label>
+						<Input value={pricingConfig.priceBookVersionId || ''} onChange={e => setPricingConfig((c) => ({ ...c, priceBookVersionId: e.target.value }))} placeholder="Versão" />
+					</div>
+				</div>
+				<div className="mt-2 text-xs text-muted-foreground">Fonte: {pricingConfig.source} | Atualizado em: {pricingConfig.updatedAt}</div>
+				<div className="mt-2 flex gap-2">
+					<Button variant="outline" onClick={() => setPricingConfig((c) => ({ ...c, source: 'market', updatedAt: new Date().toISOString(), markup: 1.5, overheadPercent: 0.03, scrapPercent: 0.01, laborCostPerHour: 50, riskFactor: 0.05 }))}>Restaurar padrão (mercado)</Button>
+					<Button variant="outline" onClick={() => setPricingConfig((c) => ({ ...c, source: 'user', updatedAt: new Date().toISOString() }))}>Salvar como padrão do usuário</Button>
+				</div>
+			</Card>
+		);
+	}
 
-  useEffect(() => {
-    setMode(initialMode);
-  }, [initialMode]);
-
-  useEffect(() => {
-    if (!initialData) return;
-    setClienteNome(initialData.clienteNome || '');
-    setClienteId(initialData.clienteId || '');
-    setDesconto(initialData.desconto || 0);
-    setObservacoes(initialData.observacoes || '');
-    setItens(initialData.itens || []);
-
-    const baseDate =
-      initialData.data instanceof Date
-        ? initialData.data
-        : initialData.data
-        ? new Date(initialData.data)
-        : new Date();
-    setDataEmissao(baseDate);
-
-    const validadeDate =
-      initialData.validade instanceof Date
-        ? initialData.validade
-        : initialData.validade
-        ? new Date(initialData.validade)
-        : null;
-    if (validadeDate && !Number.isNaN(validadeDate.getTime())) {
-      const diffDays = Math.ceil((validadeDate.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
-      setValidade(diffDays > 0 ? diffDays : 1);
-    }
-  }, [initialData]);
-
-  const handleRemoveItem = (index: number) => {
-    setItens(prev => prev.filter((_, i) => i !== index));
-    toast.info('Item removido');
-  };
-
-  const handleAddManualItem = () => {
-    if (!manualItem.descricao.trim()) {
-      toast.error('Informe a descricao do item');
-      return;
-    }
-
-    const quantidade = manualItem.quantidade > 0 ? manualItem.quantidade : 1;
-    const precoUnitario = manualItem.precoUnitario >= 0 ? manualItem.precoUnitario : 0;
-    const subtotal = quantidade * precoUnitario;
-    const codigo = manualItem.codigo.trim();
-    const id = `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-    const novoItem: ItemOrcamento = {
-      id,
-      modeloId: codigo || id,
-      modeloNome: codigo || manualItem.descricao.trim(),
-      descricao: manualItem.descricao.trim(),
-      quantidade,
-      precoUnitario,
-      subtotal,
-    };
-
-    mergeOrAppendItem(novoItem);
-    setManualItem({ codigo: '', descricao: '', quantidade: 1, precoUnitario: 0 });
-    toast.success('Item manual adicionado');
-  };
-
-  const getSaldoId = (item: SaldoEstoque) => String(item.materialId || item.produtoId);
-  const getSaldoNome = (item: SaldoEstoque) => item.materialNome || item.produtoNome || 'Material';
-  const getSaldoCodigo = (item: SaldoEstoque) => item.materialCodigo || item.produtoCodigo || '';
-
-  const handleAddEstoqueItem = () => {
-    if (!estoqueItemId) {
-      toast.error('Selecione um material do estoque');
-      return;
-    }
-
-    const saldoItem = saldos.find((item) => getSaldoId(item) === estoqueItemId);
-    if (!saldoItem) {
-      toast.error('Material nao encontrado no estoque');
-      return;
-    }
-
-    const quantidade = estoqueQuantidade > 0 ? estoqueQuantidade : 1;
-    const precoUnitario = estoquePrecoUnitario >= 0 ? estoquePrecoUnitario : 0;
-    const subtotal = quantidade * precoUnitario;
-    const codigo = getSaldoCodigo(saldoItem);
-    const nome = getSaldoNome(saldoItem);
-    const unidade = saldoItem.unidade ? ` (${saldoItem.unidade})` : '';
-    const id = `estoque-${estoqueItemId}-${Date.now()}`;
-
-    const novoItem: ItemOrcamento = {
-      id,
-      modeloId: codigo || estoqueItemId,
-      modeloNome: codigo || nome,
-      descricao: `${nome}${unidade}`,
-      quantidade,
-      precoUnitario,
-      subtotal,
-    };
-
-    mergeOrAppendItem(novoItem);
-    setEstoqueItemId('');
-    setEstoqueQuantidade(1);
-    setEstoquePrecoUnitario(0);
-    toast.success('Material do estoque adicionado');
-  };
-
-  const applyOmeiImport = (rawText: string) => {
-    const parsed = parseOmeiText(rawText);
-
-    if (!parsed.clienteNome && !parsed.itens.length) {
-      setImportError('Nao foi possivel ler o PDF. Tente novamente.');
-      return;
-    }
-
-    if (parsed.clienteNome) setClienteNome(parsed.clienteNome);
-    if (parsed.cnpj) setClienteId(parsed.cnpj);
-    if (parsed.validadeDias) setValidade(parsed.validadeDias);
-    if (parsed.dataEmissao) setDataEmissao(parsed.dataEmissao);
-
-    const observacoesImportadas = [
-      parsed.numero ? `OMEI: ${parsed.numero}` : '',
-      parsed.contato ? `Contato: ${parsed.contato}` : '',
-      parsed.email ? `Email: ${parsed.email}` : '',
-      parsed.telefone ? `Telefone: ${parsed.telefone}` : '',
-      parsed.observacoes ? parsed.observacoes : '',
-    ]
-      .filter(Boolean)
-      .join(' | ');
-
-    if (observacoesImportadas) {
-      setObservacoes(observacoesImportadas);
-    }
-
-    if (parsed.itens.length > 0) {
-      const imported = parsed.itens.map((item, index) => {
-        const id = `omei-${Date.now()}-${index}`;
-        const codigo = item.codigo ? item.codigo.trim() : '';
-        const quantidade = item.quantidade || 1;
-        const precoUnitario = 0;
-        return sanitizeItem({
-          id,
-          modeloId: codigo || id,
-          modeloNome: codigo || item.descricao,
-          descricao: item.descricao,
-          quantidade,
-          precoUnitario,
-          subtotal: quantidade * precoUnitario,
-        } as ItemOrcamento);
-      });
-      setItens(imported);
-      toast.success(`Importado: ${imported.length} itens`);
-    } else {
-      toast.error('Nenhum item foi identificado no PDF');
-    }
-  };
-
-  const handleImportFile = async () => {
-    if (!importFile) {
-      toast.error('Selecione o PDF do OMEI');
-      return;
-    }
-
-    setImporting(true);
-    setImportError(null);
-
-    try {
-      const text = await extractTextFromPdf(importFile);
-      applyOmeiImport(text);
-    } catch (error) {
-      setImportError('Erro ao ler PDF. Tente novamente.');
-      toast.error('Erro ao ler PDF');
-    } finally {
-      setImporting(false);
-    }
-  };
-
-  const [benchmark, setBenchmark] = useState<{ precoMedio: number; fonte: string } | null>(null);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!clienteNome.trim()) {
-      toast.error('Informe o nome do cliente');
-      return;
-    }
-
-    if (itens.length === 0) {
-      toast.error('Adicione pelo menos um item ao orcamento');
-      return;
-    }
-
-    const itensSanitizados = itens.map(sanitizeItem);
-    const subtotal = itensSanitizados.reduce((sum, item) => sum + item.subtotal, 0);
-    const descontoSeguro = Math.min(Math.max(0, toSafeNumber(desconto, 0)), subtotal);
-    const totalCustosIndiretos = (custosIndiretos.frete || 0) + (custosIndiretos.impostos || 0) + (custosIndiretos.outros || 0);
-    const baseLucro = subtotal + totalCustosIndiretos - descontoSeguro;
-    let lucro = baseLucro * (margemLucro.percentual || 0);
-    if (margemLucro.minimoAbsoluto && lucro < margemLucro.minimoAbsoluto) {
-      lucro = margemLucro.minimoAbsoluto;
-    }
-    const total = baseLucro + lucro;
-    const baseDate = dataEmissao || new Date();
-    const validadeDias = Math.max(1, Math.floor(toSafeNumber(validade, 15)));
-
-    if (descontoSeguro !== desconto) {
-      toast.info('Desconto ajustado para manter o total do orçamento válido');
-    }
-
-    // Validação de custos reais
-    const validacaoCustos = validarCustosReais(itensSanitizados);
-    if (!validacaoCustos.valido) {
-      toast.error(validacaoCustos.alerta);
-      return;
-    }
-    // Validação de preço mínimo
-    const validacaoMinimo = validarPrecoMinimoOrcamento({ itens: itensSanitizados, total });
-    if (!validacaoMinimo.valido) {
-      toast.error(validacaoMinimo.alerta);
-      return;
-    }
-
-    // Consulta benchmark de mercado para o primeiro item (exemplo)
-    if (itensSanitizados.length > 0) {
-      const bench = await consultarBenchmarkMercado(itensSanitizados[0].modeloId);
-      setBenchmark(bench);
-      if (bench && total > bench.precoMedio * 1.15) {
-        toast.warning(`O preço sugerido está acima do mercado (${bench.fonte}: R$ ${bench.precoMedio.toFixed(2)}). Considere revisar o markup.`);
-      }
-      if (bench && total < bench.precoMedio * 0.7) {
-        toast.info(`O preço sugerido está bem abaixo do mercado (${bench.fonte}: R$ ${bench.precoMedio.toFixed(2)}).`);
-      }
-    }
-
-    const orcamento: Omit<Orcamento, 'id' | 'numero'> = {
-      clienteId: clienteId || `cliente-${Date.now()}`,
-      clienteNome,
-      data: baseDate,
-      validade: new Date(baseDate.getTime() + validadeDias * 24 * 60 * 60 * 1000),
-      status: initialData?.status || 'Aguardando Aprovacao',
-      itens: itensSanitizados,
-      subtotal,
-      desconto: descontoSeguro,
-      custosIndiretos,
-      margemLucro,
-      lucro,
-      total,
-      observacoes: observacoes.trim() || undefined,
-      aprovadoEm: initialData?.aprovadoEm,
-    };
-
-    // Alerta de margem baixa
-    if ((lucro / (subtotal + totalCustosIndiretos)) < 0.05) {
-      toast.warning('Atenção: Margem de lucro abaixo de 5%!');
-    }
-
-    onSubmit(orcamento);
-  };
-
-  const itensSanitizadosPreview = itens.map(sanitizeItem);
-  const subtotal = itensSanitizadosPreview.reduce((sum, item) => sum + item.subtotal, 0);
-  const descontoSeguroPreview = Math.min(Math.max(0, toSafeNumber(desconto, 0)), subtotal);
-  const totalCustosIndiretosPreview = (custosIndiretos.frete || 0) + (custosIndiretos.impostos || 0) + (custosIndiretos.outros || 0);
-  const baseLucroPreview = subtotal + totalCustosIndiretosPreview - descontoSeguroPreview;
-  let lucroPreview = baseLucroPreview * (margemLucro.percentual || 0);
-  if (margemLucro.minimoAbsoluto && lucroPreview < margemLucro.minimoAbsoluto) {
-    lucroPreview = margemLucro.minimoAbsoluto;
-  }
-  const total = baseLucroPreview + lucroPreview;
-
-  return (
-    <>
-      <UserPrecificacaoConfigPanel />
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant={mode === 'manual' ? 'default' : 'outline'}
-            onClick={() => setMode('manual')}
-          >
-            Manual
-          </Button>
-          <Button
-            type="button"
-            variant={mode === 'omei' ? 'default' : 'outline'}
-            onClick={() => setMode('omei')}
-          >
-            Importar OMEI
-          </Button>
-        </div>
-
-        {mode === 'omei' && (
-          <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
-            <div className="space-y-2">
-              <Label htmlFor="omeiPdf">PDF do OMEI</Label>
-              <Input
-                id="omeiPdf"
-                type="file"
-                accept="application/pdf"
-                onChange={(e) => setImportFile(e.target.files?.[0] || null)}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                onClick={handleImportFile}
-                disabled={!importFile || importing}
-              >
-                {importing ? 'Importando...' : 'Importar PDF'}
-              </Button>
-              {importError && (
-                <span className="text-sm text-destructive">{importError}</span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              O PDF importado preenche cliente, itens e observacoes. Revise antes de salvar.
-            </p>
-          </div>
-        )}
-
-        {/* Dados do Cliente */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Dados do Cliente</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="clienteNome">Nome do Cliente *</Label>
-              <Input
-                id="clienteNome"
-                value={clienteNome}
-                onChange={(e) => setClienteNome(e.target.value)}
-                placeholder="Ex: Empresa ABC Ltda"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="clienteId">Codigo do Cliente (opcional)</Label>
-              <Input
-                id="clienteId"
-                value={clienteId}
-                onChange={(e) => setClienteId(e.target.value)}
-                placeholder="Ex: CLI-001"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Validade e Desconto */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Condicoes Comerciais</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="validade">Validade (dias)</Label>
-              <Input
-                id="validade"
-                type="number"
-                min="1"
-                value={validade}
-                onChange={(e) => setValidade(Number(e.target.value))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="desconto">Desconto (R$)</Label>
-              <Input
-                id="desconto"
-                type="number"
-                min="0"
-                max={subtotal}
-                step="0.01"
-                value={desconto}
-                onChange={(e) => setDesconto(Number(e.target.value))}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Itens */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Itens do Orcamento</h3>
-            <div className="flex gap-2">
-              <Button type="button" onClick={handleAddManualItem} size="sm" variant="outline">
-                Adicionar Manual
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/30">
-            <div className="space-y-2 md:col-span-1">
-              <Label htmlFor="manualCodigo">Codigo</Label>
-              <Input
-                id="manualCodigo"
-                value={manualItem.codigo}
-                onChange={(e) => setManualItem(prev => ({ ...prev, codigo: e.target.value }))}
-                placeholder="Ex: 1008999-1"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-3">
-              <Label htmlFor="manualDescricao">Descricao *</Label>
-              <Input
-                id="manualDescricao"
-                value={manualItem.descricao}
-                onChange={(e) => setManualItem(prev => ({ ...prev, descricao: e.target.value }))}
-                placeholder="Descricao do item"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="manualQtd">Quantidade</Label>
-              <Input
-                id="manualQtd"
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={manualItem.quantidade}
-                onChange={(e) => setManualItem(prev => ({ ...prev, quantidade: Number(e.target.value) }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="manualPreco">Preco Unitario</Label>
-              <Input
-                id="manualPreco"
-                type="number"
-                min="0"
-                step="0.01"
-                value={manualItem.precoUnitario}
-                onChange={(e) => setManualItem(prev => ({ ...prev, precoUnitario: Number(e.target.value) }))}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/20">
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="estoqueItem">Material/insumo do estoque</Label>
-              <Select value={estoqueItemId} onValueChange={setEstoqueItemId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um material" />
-                </SelectTrigger>
-                <SelectContent>
-                  {saldos.map((item) => {
-                    const id = getSaldoId(item);
-                    const codigo = getSaldoCodigo(item);
-                    const nome = getSaldoNome(item);
-                    return (
-                      <SelectItem key={id} value={id}>
-                        {codigo ? `${codigo} - ${nome}` : nome}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="estoqueQtd">Quantidade</Label>
-              <Input
-                id="estoqueQtd"
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={estoqueQuantidade}
-                onChange={(e) => setEstoqueQuantidade(Number(e.target.value))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="estoquePreco">Preco Unitario</Label>
-              <Input
-                id="estoquePreco"
-                type="number"
-                min="0"
-                step="0.01"
-                value={estoquePrecoUnitario}
-                onChange={(e) => setEstoquePrecoUnitario(Number(e.target.value))}
-              />
-            </div>
-            <div className="md:col-span-4 flex justify-end">
-              <Button type="button" variant="outline" onClick={handleAddEstoqueItem}>
-                Adicionar do Estoque
-              </Button>
-            </div>
-          </div>
-
-          {itens.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
-              <Calculator className="size-12 mx-auto mb-2 opacity-50" />
-              <p>Nenhum item adicionado</p>
-              <p className="text-sm">Adicione manualmente ou do estoque</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {itens.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-4 p-4 border rounded-lg bg-card"
-                >
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{item.modeloNome}</span>
-                      <span className="text-sm text-muted-foreground">
-                        x {item.quantidade}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{item.descricao}</p>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className="font-mono font-medium">
-                      {formatCurrency(item.subtotal)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {formatCurrency(item.precoUnitario)}/un
-                    </div>
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemoveItem(index)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Custos Indiretos */}
-        {itens.length > 0 && (
-          <div className="space-y-2 p-4 bg-muted/40 rounded-lg">
-            <h4 className="font-semibold">Custos Indiretos</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="frete">Frete (R$)</Label>
-                <Input id="frete" type="number" min="0" step="0.01" value={custosIndiretos.frete}
-                  onChange={e => setCustosIndiretos(prev => ({ ...prev, frete: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <Label htmlFor="impostos">Impostos (R$)</Label>
-                <Input id="impostos" type="number" min="0" step="0.01" value={custosIndiretos.impostos}
-                  onChange={e => setCustosIndiretos(prev => ({ ...prev, impostos: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <Label htmlFor="outros">Outros (R$)</Label>
-                <Input id="outros" type="number" min="0" step="0.01" value={custosIndiretos.outros}
-                  onChange={e => setCustosIndiretos(prev => ({ ...prev, outros: Number(e.target.value) }))} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Margem de Lucro */}
-        {itens.length > 0 && (
-          <div className="space-y-2 p-4 bg-muted/40 rounded-lg">
-            <h4 className="font-semibold">Margem de Lucro</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="margemPercentual">Margem (%)</Label>
-                <Input id="margemPercentual" type="number" min="0" max="1" step="0.01" value={margemLucro.percentual}
-                  onChange={e => setMargemLucro(prev => ({ ...prev, percentual: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <Label htmlFor="margemMin">Lucro mínimo (R$)</Label>
-                <Input id="margemMin" type="number" min="0" step="0.01" value={margemLucro.minimoAbsoluto}
-                  onChange={e => setMargemLucro(prev => ({ ...prev, minimoAbsoluto: Number(e.target.value) }))} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Resumo Financeiro */}
-        {itens.length > 0 && (
-          <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
-            <div className="flex justify-between text-sm">
-              <span>Subtotal:</span>
-              <span className="font-mono">{formatCurrency(subtotal)}</span>
-            </div>
-            {descontoSeguroPreview > 0 && (
-              <div className="flex justify-between text-sm text-destructive">
-                <span>Desconto:</span>
-                <span className="font-mono">-{formatCurrency(descontoSeguroPreview)}</span>
-              </div>
-            )}
-            <div className="flex justify-between text-sm">
-              <span>Custos Indiretos:</span>
-              <span className="font-mono">{formatCurrency(totalCustosIndiretosPreview)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>Lucro:</span>
-              <span className="font-mono">{formatCurrency(lucroPreview)}</span>
-            </div>
-            <div className="flex justify-between text-lg font-bold pt-2 border-t">
-              <span>Total:</span>
-              <span className="font-mono">{formatCurrency(total)}</span>
-            </div>
-            {lucroPreview / (subtotal + totalCustosIndiretosPreview) < 0.05 && (
-              <div className="text-sm text-destructive font-semibold pt-2">Atenção: Margem de lucro abaixo de 5%!</div>
-            )}
-          </div>
-        )}
-
-        {/* Comparativo de Mercado */}
-        {benchmark && (
-          <div className="p-4 bg-muted/30 rounded-lg mt-2">
-            <div className="font-semibold">Benchmark de Mercado ({benchmark.fonte}):</div>
-            <div>Preço Médio: <span className="font-mono">R$ {benchmark.precoMedio.toFixed(2)}</span></div>
-            <div>
-              {total > benchmark.precoMedio * 1.15 && (
-                <span className="text-destructive font-bold">Preço sugerido acima do mercado!</span>
-              )}
-              {total < benchmark.precoMedio * 0.7 && (
-                <span className="text-success font-bold">Preço sugerido abaixo do mercado.</span>
-              )}
-              {total <= benchmark.precoMedio * 1.15 && total >= benchmark.precoMedio * 0.7 && (
-                <span className="text-primary font-bold">Preço competitivo em relação ao mercado.</span>
-              )}
-            </div>
-          </div>
-        )}
-        <div className="space-y-2">
-          <Label htmlFor="observacoes">Observacoes (opcional)</Label>
-          <Textarea
-            id="observacoes"
-            value={observacoes}
-            onChange={(e) => setObservacoes(e.target.value)}
-            placeholder="Informacoes adicionais sobre o orcamento..."
-            rows={3}
-          />
-        </div>
-
-        {/* Acoes */}
-        <div className="flex justify-end gap-3 pt-4 border-t">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
-          </Button>
-          <Button type="submit">{submitLabel}</Button>
-        </div>
-      </form>
-    </>
-  );
+	// Layout principal
+	return (
+		<div className="space-y-4">
+			{renderConfigCard()}
+			{renderStep()}
+		</div>
+	);
 }
+

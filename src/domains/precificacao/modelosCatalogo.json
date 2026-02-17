@@ -1,0 +1,267 @@
+[
+  {
+    "codigo": "MPLC",
+    "nome": "MPLC – MESA LISA CENTRO CONTRAVENTA",
+    "descricao": "MPLC – MESA LISA CENTRO CONTRAVENTADA",
+    "materiais": [],
+    "componentes": [
+      "const MAT_TUBO_PE = 'TI-Ø1.1/2\"x1-1003004';",
+      "const MAT_TUBO_CONTRAV = 'TI-Ø1\"x1-1003012';",
+      "  // Pés (tubo) – A-72",
+      "    tubo: r1(a - FOLGA_PE),",
+      "  // Observação: os cortes de tubo podem ser retornados como itens também, se você quiser.",
+      "  // mas se seu app precisar, é só adicionar itens \"CORTE\" com material MAT_TUBO_*.",
+      "    prateleira: null,"
+    ],
+    "operacoes": [],
+    "dimensoes": {}
+  },
+  {
+    "codigo": "MPLC6",
+    "nome": "MPLC6 – MESA LISA CENTRO CONTRAVENT",
+    "descricao": "MPLC6 – MESA LISA CENTRO CONTRAVENTADA (6 PÉS)",
+    "materiais": [],
+    "componentes": [
+      "    tubo: r1(a - FOLGA_PE), // 900 -> 828 :contentReference[oaicite:3]{index=3}",
+      "  // (Opcional recomendado) Itens explícitos de tubo:",
+      "  return { bom, pes, contraventamentos, casquilhos, prateleira: null };"
+    ],
+    "operacoes": [],
+    "dimensoes": {}
+  },
+  {
+    "codigo": "MPLCP",
+    "nome": "MPLCP – MESA LISA CENTRO COM PRATEL",
+    "descricao": "MPLCP – MESA LISA CENTRO COM PRATELEIRA",
+    "materiais": [],
+    "componentes": [
+      "MPLCP – MESA LISA CENTRO COM PRATELEIRA",
+      "const REFORCO_TRASEIRO_ESPELHO_W_FOLGA = 22; // 1500 -> 1478",
+      "const REFORCO_TRASEIRO_ESPELHO_H = 104;",
+      "const REFORCO_PRATELEIRA_W = 112.98;",
+      "const REFORCO_PRATELEIRA_FOLGA_C = 120.10;",
+      "const PRATELEIRA_OFFSET_C = 1.82;",
+      "const PRATELEIRA_OFFSET_L = -2.88;",
+      "  // 2 FECHAMENTOS DO ESPELHO",
+      "  // 4 REFORÇO TRASEIRO ESPELHO",
+      "    desc: \"REFORÇO TRASEIRO ESPELHO\",",
+      "    w: r1(c - REFORCO_TRASEIRO_ESPELHO_W_FOLGA),",
+      "    h: REFORCO_TRASEIRO_ESPELHO_H,",
+      "  // 6 REFORÇO PRATELEIRA",
+      "    desc: \"REFORÇO PRATELEIRA LISA\",",
+      "    w: REFORCO_PRATELEIRA_W,",
+      "    h: r2(c - REFORCO_PRATELEIRA_FOLGA_C),",
+      "  // 9 PRATELEIRA INFERIOR",
+      "  const prateleira: BOMItem = {",
+      "    desc: \"PRATELEIRA INFERIOR LISA\",",
+      "    w: r2(c + PRATELEIRA_OFFSET_C),",
+      "    h: r2(l + PRATELEIRA_OFFSET_L),",
+      "  bom.push(prateleira);",
+      "    tubo: r1(a - FOLGA_PE),",
+      "    prateleira,"
+    ],
+    "operacoes": [],
+    "dimensoes": {}
+  },
+  {
+    "codigo": "MPLCP6",
+    "nome": "MPLCP6 – MESA LISA CENTRO COM PRATE",
+    "descricao": "MPLCP6 – MESA LISA CENTRO COM PRATELEIRA (6 PÉS)",
+    "materiais": [],
+    "componentes": [
+      "MPLCP6 – MESA LISA CENTRO COM PRATELEIRA (6 PÉS)",
+      " * MPLCP6 – MESA LISA CENTRO COM PRATELEIRA (6 PÉS)",
+      "const PRATELEIRA_OFFSET = 1.82;",
+      "    desc: \"REFORÇO DA PRATELEIRA\",",
+      "  const prateleira: BOMItem = {",
+      "    desc: \"PRATELEIRA PADRÃO\",",
+      "    w: r2(c + PRATELEIRA_OFFSET),"
+    ],
+    "operacoes": [],
+    "dimensoes": {}
+  },
+  {
+    "codigo": "MPLE4_INV_LD",
+    "nome": "MPLE4_INV_LD — Mesa com Espelho Tra",
+    "descricao": "MPLE4_INV_LD\" — Mesa com Espelho Traseiro + Lateral Direito",
+    "materiais": [],
+    "componentes": [
+      "MPLE4_INV_LD\" — Mesa com Espelho Traseiro + Lateral Direito",
+      "  // TAMPO COM ESPELHOS",
+      "    desc: \"TAMPO COM ESPELHO TRASEIRO E LATERAL DIREITO\",",
+      "  // ESPELHOS",
+      "    desc: \"ESPELHO LADO DIREITO\",",
+      "    desc: \"ESPELHO LADO ESQUERDO\",",
+      "    tubo: r1(a - 70)",
+      "  return { bom, pes, contraventamentos, casquilhos, prateleira: null };"
+    ],
+    "operacoes": [],
+    "dimensoes": {}
+  },
+  {
+    "codigo": "MPLE4_INV_LD6",
+    "nome": "MPLE4_INV_LD6 – Mesa com espelho tr",
+    "descricao": "MPLE4_INV_LD6 – Mesa com espelho traseiro + lateral direito (6 PÉS)",
+    "materiais": [],
+    "componentes": [
+      "MPLE4_INV_LD6 – Mesa com espelho traseiro + lateral direito (6 PÉS)",
+      " * MPLE4_INV_LD6 – Mesa com espelho traseiro + lateral direito (6 PÉS)",
+      "    desc: \"TAMPO COM ESPELHO TRASEIRO E LATERAL DIREITO\",",
+      "  // ESPELHOS",
+      "    desc: \"ESPELHO LADO DIREITO\",",
+      "    desc: \"ESPELHO LADO ESQUERDO\",",
+      "  // Tubos (itens explícitos)",
+      "    desc: \"PÉ (TUBO)\",",
+      "  const pes: Pes = { qtd: 6, tubo: r1(a - FOLGA_PE) };",
+      "  return { bom, pes, contraventamentos, casquilhos, prateleira: null };"
+    ],
+    "operacoes": [],
+    "dimensoes": {}
+  },
+  {
+    "codigo": "MPLE4_INV_LE",
+    "nome": "MPLE4_INV_LE — Mesa com Espelho Tra",
+    "descricao": "MPLE4_INV_LE\" — Mesa com Espelho Traseiro + Lateral Esquerdo",
+    "materiais": [],
+    "componentes": [
+      "MPLE4_INV_LE\" — Mesa com Espelho Traseiro + Lateral Esquerdo",
+      "  // TAMPO COM ESPELHOS",
+      "    desc: \"TAMPO COM ESPELHO TRASEIRO E LATERAL ESQUERDO\",",
+      "  // ESPELHOS",
+      "    desc: \"ESPELHO LADO ESQUERDO\",",
+      "    desc: \"ESPELHO LADO DIREITO\",",
+      "    tubo: r1(a - 70)",
+      "  return { bom, pes, contraventamentos, casquilhos, prateleira: null };"
+    ],
+    "operacoes": [],
+    "dimensoes": {}
+  },
+  {
+    "codigo": "MPLE4_INV_LE6",
+    "nome": "MPLE4_INV_LE6 – Mesa com espelho tr",
+    "descricao": "MPLE4_INV_LE6 – Mesa com espelho traseiro + lateral esquerdo (6 PÉS)",
+    "materiais": [],
+    "componentes": [
+      "MPLE4_INV_LE6 – Mesa com espelho traseiro + lateral esquerdo (6 PÉS)",
+      " * MPLE4_INV_LE6 – Mesa com espelho traseiro + lateral esquerdo (6 PÉS)",
+      "    desc: \"TAMPO COM ESPELHO TRASEIRO E LATERAL ESQUERDO\",",
+      "  // ESPELHOS (inverte processos/códigos conforme seu padrão)",
+      "    desc: \"ESPELHO LADO ESQUERDO\",",
+      "    desc: \"ESPELHO LADO DIREITO\",",
+      "  // Tubos",
+      "    desc: \"PÉ (TUBO)\",",
+      "  const pes: Pes = { qtd: 6, tubo: r1(a - FOLGA_PE) };",
+      "  return { bom, pes, contraventamentos, casquilhos, prateleira: null };"
+    ],
+    "operacoes": [],
+    "dimensoes": {}
+  },
+  {
+    "codigo": "MPLEP",
+    "nome": "MPLEP – Mesa lisa encosto com prate",
+    "descricao": "MPLEP – Mesa lisa encosto com prateleira",
+    "materiais": [],
+    "componentes": [
+      "MPLEP – Mesa lisa encosto com prateleira",
+      "const REFORCO_TRASEIRO_ESPELHO_W_FOLGA = 22; // 1500 -> 1478",
+      "const REFORCO_TRASEIRO_ESPELHO_H = 104;",
+      "const REFORCO_PRATELEIRA_W = 112.98;",
+      "const REFORCO_PRATELEIRA_FOLGA_C = 120.10; // 1500 -> 1379.90",
+      "const PRATELEIRA_OFFSET_C = 1.82;  // 1500 -> 1501.82",
+      "const PRATELEIRA_OFFSET_L = -2.88; // 700  -> 697.12",
+      "  // 2) FECHAMENTOS DO ESPELHO (DIR/ESQ)",
+      "  // 4) REFORÇO TRASEIRO ESPELHO",
+      "    desc: \"REFORÇO TRASEIRO ESPELHO\",",
+      "    w: r1(c - REFORCO_TRASEIRO_ESPELHO_W_FOLGA),",
+      "    h: REFORCO_TRASEIRO_ESPELHO_H,",
+      "  // 6) REFORÇO PRATELEIRA",
+      "    desc: \"REFORÇO PRATELEIRA LISA\",",
+      "    w: REFORCO_PRATELEIRA_W,",
+      "    h: r2(c - REFORCO_PRATELEIRA_FOLGA_C),",
+      "  // 9) PRATELEIRA INFERIOR",
+      "  const prateleira: BOMItem = {",
+      "    desc: \"PRATELEIRA INFERIOR LISA\",",
+      "    w: r2(c + PRATELEIRA_OFFSET_C),",
+      "    h: r2(l + PRATELEIRA_OFFSET_L),",
+      "  bom.push(prateleira);",
+      "    tubo: r1(a - FOLGA_PE), // 900 -> 828",
+      "    prateleira,"
+    ],
+    "operacoes": [],
+    "dimensoes": {}
+  },
+  {
+    "codigo": "MPLEP6",
+    "nome": "MPLEP6 – Mesa lisa encosto com prat",
+    "descricao": "MPLEP6 – Mesa lisa encosto com prateleira (6 PÉS)",
+    "materiais": [],
+    "componentes": [
+      "MPLEP6 – Mesa lisa encosto com prateleira (6 PÉS)",
+      " * MPLEP6 – Mesa lisa encosto com prateleira (6 PÉS)",
+      "const REFORCO_TRASEIRO_ESPELHO_W_FOLGA = 22;",
+      "const REFORCO_TRASEIRO_ESPELHO_H = 104;",
+      "const REFORCO_PRATELEIRA_W = 112.98;",
+      "const REFORCO_PRATELEIRA_FOLGA_C = 120.10;",
+      "const PRATELEIRA_OFFSET_C = 1.82;",
+      "const PRATELEIRA_OFFSET_L = -2.88;",
+      "  // Reforço traseiro espelho (mantém 1)",
+      "    desc: \"REFORÇO TRASEIRO ESPELHO\",",
+      "    w: r1(c - REFORCO_TRASEIRO_ESPELHO_W_FOLGA),",
+      "    h: REFORCO_TRASEIRO_ESPELHO_H,",
+      "  // Reforço prateleira (mantém 1)",
+      "    desc: \"REFORÇO PRATELEIRA LISA\",",
+      "    w: REFORCO_PRATELEIRA_W,",
+      "    h: r2(c - REFORCO_PRATELEIRA_FOLGA_C),",
+      "  // Prateleira inferior",
+      "  const prateleira: BOMItem = {",
+      "    desc: \"PRATELEIRA INFERIOR LISA\",",
+      "    w: r2(c + PRATELEIRA_OFFSET_C),",
+      "    h: r2(l + PRATELEIRA_OFFSET_L),",
+      "  bom.push(prateleira);",
+      "  const pes: Pes = { qtd: 6, tubo: r1(a - FOLGA_PE) };",
+      "  return { bom, pes, contraventamentos: null, casquilhos, prateleira };"
+    ],
+    "operacoes": [],
+    "dimensoes": {}
+  },
+  {
+    "codigo": "MPVE",
+    "nome": "MPVE – MESA CONTRAVENTADA C ESPELHO",
+    "descricao": "MPVE – MESA CONTRAVENTADA C/ ESPELHO TRASEIRO + TAMPO COM CUBA (DIR) + BORDA D'ÁGUA",
+    "materiais": [],
+    "componentes": [
+      "MPVE – MESA CONTRAVENTADA C/ ESPELHO TRASEIRO + TAMPO COM CUBA (DIR) + BORDA D'ÁGUA",
+      " * MPVE – MESA CONTRAVENTADA C/ ESPELHO TRASEIRO + TAMPO COM CUBA (DIR) + BORDA D'ÁGUA",
+      "// ===== Fechamentos do espelho =====",
+      "  // Contraventamentos (tubo) – conforme BOM: 2 laterais + 2 traseiros :contentReference[oaicite:13]{index=13}",
+      "  // Pés (tubo)",
+      "    desc: 'TUBO ø38,1mm PÉ',",
+      "    tubo: r1(a - FOLGA_PE),",
+      "    prateleira: null,"
+    ],
+    "operacoes": [],
+    "dimensoes": {}
+  },
+  {
+    "codigo": "MV-EC1C-CV",
+    "nome": "MV-EC1C-CV - BANCADA C01 CUBA (ENCO",
+    "descricao": "MV-EC1C-CV - BANCADA C/01 CUBA (ENCOSTO + CUBA CENTRAL + CONTRAVENTADA)",
+    "materiais": [
+      "    material: \"INOX 304\",",
+      "    material: 'TB INOX 1\" x 1 mm',"
+    ],
+    "componentes": [
+      "  const tuboPe = r1(a - FOLGA_PE);",
+      "  // 2) Fechamentos espelho (dir + esq)",
+      "    desc: \"FECHA. DIR. ESPELHO TAMPOS\",",
+      "    desc: \"FECHA. ESQ. ESPELHO TAMPOS\",",
+      "  // 7) Pés (tubo Ø38,1) – qty 4",
+      "    desc: \"TUBO ø38,1mm PÉ\",",
+      "    w: tuboPe,",
+      "    pes: { qtd: 4, tubo: tuboPe },",
+      "    prateleira: null,"
+    ],
+    "operacoes": [],
+    "dimensoes": {}
+  }
+]
