@@ -1,4 +1,4 @@
-import { FormField } from "./FormField";
+import { UnifiedFormField } from "../ui/UnifiedFormField";
 
 interface PrateleirasFormProps {
   formData: any;
@@ -12,7 +12,7 @@ export function PrateleirasForm({ formData, setFormData }: PrateleirasFormProps)
 
   return (
     <div className="space-y-4">
-      <FormField label="Tipo" required>
+      <UnifiedFormField label="Tipo" required>
         <select
           value={formData.tipo || "lisa"}
           onChange={(e) => update("tipo", e.target.value)}
@@ -21,28 +21,28 @@ export function PrateleirasForm({ formData, setFormData }: PrateleirasFormProps)
           <option value="lisa">Lisa</option>
           <option value="gradeada">Gradeada</option>
         </select>
-      </FormField>
+      </UnifiedFormField>
 
       <div className="grid grid-cols-2 gap-4">
-        <FormField label="Comprimento (mm)" required>
+        <UnifiedFormField label="Comprimento (mm)" required>
           <input
             type="number"
             value={formData.comprimento || ""}
             onChange={(e) => update("comprimento", Number(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
-        </FormField>
+        </UnifiedFormField>
 
-        <FormField label="Profundidade (mm)" required>
+        <UnifiedFormField label="Profundidade (mm)" required>
           <input
             type="number"
             value={formData.profundidade || ""}
             onChange={(e) => update("profundidade", Number(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
-        </FormField>
+        </UnifiedFormField>
 
-        <FormField label="Espessura Chapa (mm)" required>
+        <UnifiedFormField label="Espessura Chapa (mm)" required>
           <input
             type="number"
             value={formData.espessuraChapa || ""}
@@ -50,7 +50,7 @@ export function PrateleirasForm({ formData, setFormData }: PrateleirasFormProps)
             step="0.1"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
-        </FormField>
+        </UnifiedFormField>
       </div>
 
       <div className="space-y-2">

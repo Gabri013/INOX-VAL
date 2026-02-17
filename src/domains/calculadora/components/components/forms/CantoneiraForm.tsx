@@ -1,4 +1,4 @@
-import { FormField } from "./FormField";
+import { UnifiedFormField } from "../ui/UnifiedFormField";
 
 interface CantoneiraFormProps {
   formData: any;
@@ -13,18 +13,18 @@ export function CantoneiraForm({ formData, setFormData }: CantoneiraFormProps) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <FormField label="Comprimento (mm)" required>
+        <UnifiedFormField label="Comprimento (mm)" required>
           <input type="number" value={formData.comprimento || ""} onChange={(e) => update("comprimento", Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-        </FormField>
-        <FormField label="Lado A (mm)" required>
+        </UnifiedFormField>
+        <UnifiedFormField label="Lado A (mm)" required>
           <input type="number" value={formData.ladoA || ""} onChange={(e) => update("ladoA", Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-        </FormField>
-        <FormField label="Lado B (mm)" required>
+        </UnifiedFormField>
+        <UnifiedFormField label="Lado B (mm)" required>
           <input type="number" value={formData.ladoB || ""} onChange={(e) => update("ladoB", Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-        </FormField>
-        <FormField label="Espessura (mm)" required>
+        </UnifiedFormField>
+        <UnifiedFormField label="Espessura (mm)" required>
           <input type="number" value={formData.espessura || ""} onChange={(e) => update("espessura", Number(e.target.value))} step="0.1" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-        </FormField>
+        </UnifiedFormField>
       </div>
       
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

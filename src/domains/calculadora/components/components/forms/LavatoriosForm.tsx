@@ -1,4 +1,4 @@
-import { FormField } from "./FormField";
+import { UnifiedFormField } from "../ui/UnifiedFormField";
 
 interface LavatoriosFormProps {
   formData: any;
@@ -12,7 +12,7 @@ export function LavatoriosForm({ formData, setFormData }: LavatoriosFormProps) {
 
   return (
     <div className="space-y-4">
-      <FormField label="Tipo" required>
+      <UnifiedFormField label="Tipo" required>
         <select
           value={formData.tipo || "lavatorioPadrao"}
           onChange={(e) => update("tipo", e.target.value)}
@@ -21,7 +21,7 @@ export function LavatoriosForm({ formData, setFormData }: LavatoriosFormProps) {
           <option value="lavatorioPadrao">Lavatório Padrão</option>
           <option value="lavatorioCirurgico">Lavatório Cirúrgico</option>
         </select>
-      </FormField>
+      </UnifiedFormField>
 
       {formData.tipo === "lavatorioPadrao" ? (
         <FormField label="Modelo" required>

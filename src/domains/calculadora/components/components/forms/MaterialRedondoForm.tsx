@@ -1,4 +1,4 @@
-import { FormField } from "./FormField";
+import { UnifiedFormField } from "../ui/UnifiedFormField";
 
 interface MaterialRedondoFormProps {
   formData: any;
@@ -20,18 +20,18 @@ export function MaterialRedondoForm({ formData, setFormData }: MaterialRedondoFo
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <FormField label="Diâmetro (mm)" required>
+        <UnifiedFormField label="Diâmetro (mm)" required>
           <input type="number" value={formData.diametro || ""} onChange={(e) => update("diametro", Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-        </FormField>
-        <FormField label="Altura (mm)" required>
+        </UnifiedFormField>
+        <UnifiedFormField label="Altura (mm)" required>
           <input type="number" value={formData.altura || ""} onChange={(e) => update("altura", Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-        </FormField>
-        <FormField label="Espessura (mm)" required>
+        </UnifiedFormField>
+        <UnifiedFormField label="Espessura (mm)" required>
           <input type="number" value={formData.espessura || ""} onChange={(e) => update("espessura", Number(e.target.value))} step="0.1" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-        </FormField>
-        <FormField label="Percentual Repuxo (%)">
+        </UnifiedFormField>
+        <UnifiedFormField label="Percentual Repuxo (%)">
           <input type="number" value={formData.percentualRepuxo || ""} onChange={(e) => update("percentualRepuxo", Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-        </FormField>
+        </UnifiedFormField>
       </div>
     </div>
   );

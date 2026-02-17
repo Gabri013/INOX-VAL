@@ -1,4 +1,4 @@
-import { FormField } from "./FormField";
+import { UnifiedFormField } from "../ui/UnifiedFormField";
 
 interface BancadasFormProps {
   formData: any;
@@ -23,7 +23,7 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
   return (
     <div className="space-y-4">
       {/* Tipo de Orçamento */}
-      <FormField label="Tipo de Orçamento" required>
+      <UnifiedFormField label="Tipo de Orçamento" required>
         <select
           value={orcamentoTipo}
           onChange={(e) => update("orcamentoTipo", e.target.value)}
@@ -33,30 +33,30 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
           <option value="bancadaSemCuba">Bancada sem Cuba</option>
           <option value="bancadaComCuba">Bancada com Cuba</option>
         </select>
-      </FormField>
+      </UnifiedFormField>
 
       {/* Dimensões */}
       <div className="grid grid-cols-2 gap-4">
-        <FormField label="Comprimento (mm)" required>
+        <UnifiedFormField label="Comprimento (mm)" required>
           <input
             type="number"
             value={formData.comprimento || ""}
             onChange={(e) => update("comprimento", Number(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
-        </FormField>
+        </UnifiedFormField>
 
-        <FormField label="Largura (mm)" required>
+        <UnifiedFormField label="Largura (mm)" required>
           <input
             type="number"
             value={formData.largura || ""}
             onChange={(e) => update("largura", Number(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
-        </FormField>
+        </UnifiedFormField>
 
         {/* Altura Frontal apenas para Cuba ou Bancada */}
-        <FormField
+        <UnifiedFormField
           label={orcamentoTipo === "somenteCuba" ? "Profundidade (mm)" : "Altura Frontal (mm)"}
           required={orcamentoTipo === "somenteCuba"}
         >
@@ -66,9 +66,9 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
             onChange={(e) => update("alturaFrontal", Number(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
-        </FormField>
+        </UnifiedFormField>
 
-        <FormField label="Espessura Chapa (mm)" required>
+        <UnifiedFormField label="Espessura Chapa (mm)" required>
           <input
             type="number"
             value={formData.espessuraChapa || ""}
@@ -76,7 +76,7 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
             step="0.1"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
-        </FormField>
+        </UnifiedFormField>
       </div>
 
       {/* Cuba (apenas se bancadaComCuba) */}
@@ -84,34 +84,34 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
         <div className="border border-blue-200 bg-blue-50 rounded-lg p-4">
           <h3 className="text-sm font-semibold text-gray-900 mb-3">Dimensões da Cuba</h3>
           <div className="grid grid-cols-2 gap-4">
-            <FormField label="L (mm)" required>
+            <UnifiedFormField label="L (mm)" required>
               <input
                 type="number"
                 value={formData.cuba?.L || ""}
                 onChange={(e) => updateCuba("L", Number(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-            </FormField>
+            </UnifiedFormField>
 
-            <FormField label="W (mm)" required>
+            <UnifiedFormField label="W (mm)" required>
               <input
                 type="number"
                 value={formData.cuba?.W || ""}
                 onChange={(e) => updateCuba("W", Number(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-            </FormField>
+            </UnifiedFormField>
 
-            <FormField label="H (mm)" required>
+            <UnifiedFormField label="H (mm)" required>
               <input
                 type="number"
                 value={formData.cuba?.H || ""}
                 onChange={(e) => updateCuba("H", Number(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-            </FormField>
+            </UnifiedFormField>
 
-            <FormField label="Espessura (mm)" required>
+            <UnifiedFormField label="Espessura (mm)" required>
               <input
                 type="number"
                 value={formData.cuba?.t || ""}
@@ -119,7 +119,7 @@ export function BancadasForm({ formData, setFormData }: BancadasFormProps) {
                 step="0.1"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-            </FormField>
+            </UnifiedFormField>
           </div>
         </div>
       )}
