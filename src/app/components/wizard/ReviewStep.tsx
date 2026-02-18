@@ -1,5 +1,4 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/app/components/ui/button';
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
 import { QuoteDraftResult } from '@/domains/engine/quote';
 

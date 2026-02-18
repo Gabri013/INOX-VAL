@@ -1,5 +1,4 @@
-import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 import { QuoteDraftResult } from '@/domains/engine/quote';
 
 interface Props {

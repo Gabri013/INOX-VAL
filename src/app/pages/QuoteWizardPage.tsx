@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Progress } from '@/app/components/ui/progress';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -12,14 +12,14 @@ import {
 } from 'lucide-react';
 
 // Steps
-import { CustomerStep } from '@/components/wizard/CustomerStep';
-import { ProductStep } from '@/components/wizard/ProductStep';
-import { DimensionsStep } from '@/components/wizard/DimensionsStep';
-import { BOMStep } from '@/components/wizard/BOMStep';
-import { NestingStep } from '@/components/wizard/NestingStep';
-import { CostsStep } from '@/components/wizard/CostsStep';
-import { PricingStep } from '@/components/wizard/PricingStep';
-import { ReviewStep } from '@/components/wizard/ReviewStep';
+import { CustomerStep } from '@/app/components/wizard/CustomerStep';
+import { ProductStep } from '@/app/components/wizard/ProductStep';
+import { DimensionsStep } from '@/app/components/wizard/DimensionsStep';
+import { BOMStep } from '@/app/components/wizard/BOMStep';
+import { NestingStep } from '@/app/components/wizard/NestingStep';
+import { CostsStep } from '@/app/components/wizard/CostsStep';
+import { PricingStep } from '@/app/components/wizard/PricingStep';
+import { ReviewStep } from '@/app/components/wizard/ReviewStep';
 
 // Engine
 import { 
