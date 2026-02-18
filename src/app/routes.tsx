@@ -24,6 +24,15 @@ import PrecificacaoPage from "@/domains/precificacao/pages/Precificacao";
 import QuoteWizardPage from "./pages/QuoteWizardPage";
 import AutoQuotePage from "./pages/AutoQuotePage";
 
+// Importar páginas de Calibração
+import { 
+  CalibrationDashboard, 
+  BaselineEditor, 
+  CalibrationRunPage, 
+  FactorsEditor, 
+  CalibrationReportPage 
+} from "@/domains/calibration";
+
 // Importar pÃ¡ginas de Clientes e Produtos
 import { ClienteDetail, ClienteForm } from "@/domains/clientes";
 import { ProdutoDetail, ProdutoForm } from "@/domains/produtos";
@@ -217,6 +226,55 @@ export const router = createBrowserRouter([
       { 
         path: "anuncios/:id/editar", 
         element: <ProtectedRoute requiredModule="anuncios"><AnuncioForm /></ProtectedRoute>
+      },
+      // Rotas de Calibração
+      { 
+        path: "calibracao", 
+        element: <ProtectedRoute requiredModule="configuracoes"><CalibrationDashboard /></ProtectedRoute>
+      },
+      { 
+        path: "calibracao/materiais", 
+        element: <ProtectedRoute requiredModule="configuracoes"><div>Materiais</div></ProtectedRoute>
+      },
+      { 
+        path: "calibracao/processos", 
+        element: <ProtectedRoute requiredModule="configuracoes"><div>Processos</div></ProtectedRoute>
+      },
+      { 
+        path: "calibracao/perdas", 
+        element: <ProtectedRoute requiredModule="configuracoes"><div>Perdas</div></ProtectedRoute>
+      },
+      { 
+        path: "calibracao/metricas", 
+        element: <ProtectedRoute requiredModule="configuracoes"><div>Métricas</div></ProtectedRoute>
+      },
+      { 
+        path: "calibracao/overhead-margem", 
+        element: <ProtectedRoute requiredModule="configuracoes"><div>Overhead e Margem</div></ProtectedRoute>
+      },
+      { 
+        path: "calibracao/validacao", 
+        element: <ProtectedRoute requiredModule="configuracoes"><div>Validação</div></ProtectedRoute>
+      },
+      { 
+        path: "calibracao/relatorio", 
+        element: <ProtectedRoute requiredModule="configuracoes"><CalibrationReportPage reportId="1" /></ProtectedRoute>
+      },
+      { 
+        path: "calibracao/baselines/novo", 
+        element: <ProtectedRoute requiredModule="configuracoes"><BaselineEditor onSave={() => {}} onCancel={() => {}} /></ProtectedRoute>
+      },
+      { 
+        path: "calibracao/baselines/:id/editar", 
+        element: <ProtectedRoute requiredModule="configuracoes"><BaselineEditor onSave={() => {}} onCancel={() => {}} /></ProtectedRoute>
+      },
+      { 
+        path: "calibracao/fatores", 
+        element: <ProtectedRoute requiredModule="configuracoes"><FactorsEditor /></ProtectedRoute>
+      },
+      { 
+        path: "calibracao/runs/:id", 
+        element: <ProtectedRoute requiredModule="configuracoes"><CalibrationRunPage runId="1" /></ProtectedRoute>
       },
       { path: "*", Component: NotFound },
     ],

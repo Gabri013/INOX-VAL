@@ -30,7 +30,9 @@
     "smoke:firestore": "node scripts/smoke-firestore.js",
     "seed:users": "node scripts/seed-sector-users.js",
     "test:firebase": "node scripts/test-firebase.js",
-    "check:all": "bash scripts/check-all.sh"
+    "check:all": "bash scripts/check-all.sh",
+    "validate": "npx tsx scripts/validate/index.ts",
+    "validate:advanced": "npx tsx scripts/validate/advanced/index.ts"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
