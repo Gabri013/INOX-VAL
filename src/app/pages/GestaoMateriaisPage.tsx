@@ -57,16 +57,17 @@ export default function GestaoMateriaisPage() {
           <GestaoChapas setMensagem={setMensagem} />
         </TabsContent>
 
+
         <TabsContent value="tubos">
-          <GestaoTubos setMensagem={setMensagem} />
+          <GestaoTubos />
         </TabsContent>
 
         <TabsContent value="cantoneiras">
-          <GestaoCantoneiras setMensagem={setMensagem} />
+          <GestaoCantoneiras />
         </TabsContent>
 
         <TabsContent value="acessorios">
-          <GestaoAcessorios setMensagem={setMensagem} />
+          <GestaoAcessorios />
         </TabsContent>
 
         <TabsContent value="configuracoes">
@@ -134,7 +135,7 @@ function GestaoChapas({ setMensagem }: any) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
               <Label>Tipo de Inox</Label>
-              <Select value={tipoInox} onValueChange={(v) => setTipoInox(v as TipoInox)}>
+              <Select value={tipoInox} onValueChange={(v: string) => setTipoInox(v as TipoInox)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -148,7 +149,7 @@ function GestaoChapas({ setMensagem }: any) {
 
             <div>
               <Label>Espessura (mm)</Label>
-              <Select value={espessura.toString()} onValueChange={(v) => setEspessura(Number(v))}>
+              <Select value={espessura.toString()} onValueChange={(v: string) => setEspessura(Number(v))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -239,7 +240,7 @@ function GestaoChapas({ setMensagem }: any) {
 // GESTÃO DE TUBOS
 // ============================================================================
 
-function GestaoTubos({ setMensagem }: any) {
+function GestaoTubos() {
   const [tubos, setTubos] = useState<TuboDefinicao[]>([]);
 
   useEffect(() => {
@@ -304,7 +305,7 @@ function GestaoTubos({ setMensagem }: any) {
 // GESTÃO DE CANTONEIRAS
 // ============================================================================
 
-function GestaoCantoneiras({ setMensagem }: any) {
+function GestaoCantoneiras() {
   const [cantoneiras, setCantoneiras] = useState<CantoneiraDefinicao[]>([]);
 
   useEffect(() => {
@@ -362,7 +363,7 @@ function GestaoCantoneiras({ setMensagem }: any) {
 // GESTÃO DE ACESSÓRIOS
 // ============================================================================
 
-function GestaoAcessorios({ setMensagem }: any) {
+function GestaoAcessorios() {
   const [acessorios, setAcessorios] = useState<AcessorioDefinicao[]>([]);
 
   useEffect(() => {

@@ -20,7 +20,6 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { toast } from "sonner";
 import { Orcamento, OrdemProducao, StatusOrdem } from "../types/workflow";
-import type { ResultadoCalculadora } from "@/domains/calculadora/types";
 import type { BOMItem } from "@/bom/types";
 import { estoqueItensService, registrarMovimentoEstoque } from "@/services/firestore/estoque.service";
 import OrdemProducaoPDF, { type OrdemProducaoData, type StatusOP } from "@/components/OrdemProducaoPDF";
@@ -122,7 +121,7 @@ export default function Ordens() {
 
   const getStatusOP = (status: string): StatusOP => {
     switch (status) {
-      case "Em Produ\u00e7\u00e3o":
+      case "Em Produção":
         return "EM_PRODUCAO";
       case "Concluída":
         return "CONCLUIDA";
@@ -196,8 +195,8 @@ export default function Ordens() {
       description: "Ordens cadastradas"
     },
     {
-      title: "Em Produ\u00e7\u00e3o",
-      value: todasOrdens.filter(o => o.status === "Em Produ\u00e7\u00e3o").length,
+      title: "Em Produção",
+      value: todasOrdens.filter(o => o.status === "Em Produção").length,
       description: "Atualmente produzindo",
       className: "border-blue-200 dark:border-blue-800"
     },
@@ -219,7 +218,7 @@ export default function Ordens() {
     switch (status) {
       case "Concluída":
         return <CheckCircle className="size-3" />;
-      case "Em Produ\u00e7\u00e3o":
+      case "Em Produção":
         return <Play className="size-3" />;
       case "Pausada":
         return <Pause className="size-3" />;
@@ -232,7 +231,7 @@ export default function Ordens() {
     switch (status) {
       case "Concluída":
         return "default";
-      case "Em Produ\u00e7\u00e3o":
+      case "Em Produção":
         return "secondary";
       case "Cancelada":
         return "destructive";
@@ -533,7 +532,7 @@ export default function Ordens() {
     },
     {
       icon: Play,
-      label: "Iniciar Produ??o",
+      label: "Iniciar Produção",
       onClick: handleIniciarProducao,
       show: (ord: OrdemProducao) => ord.status === "Pendente"
     },
@@ -548,7 +547,7 @@ export default function Ordens() {
           toast.error(result.error || "N?o foi poss?vel pausar a ordem");
         }
       },
-      show: (ord: OrdemProducao) => ord.status === "Em Produ\u00e7\u00e3o"
+      show: (ord: OrdemProducao) => ord.status === "Em Produção"
     },
     {
       icon: Play,
@@ -574,7 +573,7 @@ export default function Ordens() {
           toast.error(result.error || "N?o foi poss?vel concluir a ordem");
         }
       },
-      show: (ord: OrdemProducao) => ord.status === "Em Produ\u00e7\u00e3o"
+      show: (ord: OrdemProducao) => ord.status === "Em Produção"
     },
     {
       icon: AlertTriangle,
@@ -611,7 +610,7 @@ export default function Ordens() {
           <SelectContent>
             <SelectItem value="all">Todos os status</SelectItem>
             <SelectItem value="Pendente">Pendente</SelectItem>
-            <SelectItem value="Em Produ\u00e7\u00e3o">Em Produ\u00e7\u00e3o</SelectItem>
+            <SelectItem value="Em Produção">Em Produção</SelectItem>
             <SelectItem value="Pausada">Pausada</SelectItem>
             <SelectItem value="Concluída">Concluída</SelectItem>
             <SelectItem value="Cancelada">Cancelada</SelectItem>

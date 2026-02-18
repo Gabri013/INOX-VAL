@@ -129,7 +129,7 @@ export default function AnuncioForm() {
           <div className="space-y-2">
             <Label htmlFor="tipo">Tipo*</Label>
             <Select
-              onValueChange={(value) => setValue('tipo', value as any)}
+              onValueChange={(value: string) => setValue('tipo', value as any)}
               defaultValue="info"
             >
               <SelectTrigger>
@@ -151,7 +151,7 @@ export default function AnuncioForm() {
           <div className="space-y-2">
             <Label htmlFor="destinatarios">Destinatários*</Label>
             <Select
-              onValueChange={(value) => {
+              onValueChange={(value: string) => {
                 setValue('destinatarios', value as any);
                 // Limpar campos condicionais
                 setValue('departamentoAlvo', undefined);
@@ -175,7 +175,7 @@ export default function AnuncioForm() {
             <div className="space-y-2">
               <Label htmlFor="departamentoAlvo">Departamento*</Label>
               <Select
-                onValueChange={(value) => setValue('departamentoAlvo', value)}
+                onValueChange={(value: string) => setValue('departamentoAlvo', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o departamento" />
@@ -196,7 +196,7 @@ export default function AnuncioForm() {
           {destinatarios === 'role' && (
             <div className="space-y-2">
               <Label htmlFor="roleAlvo">Função*</Label>
-              <Select onValueChange={(value) => setValue('roleAlvo', value)}>
+              <Select onValueChange={(value: string) => setValue('roleAlvo', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione a função" />
                 </SelectTrigger>

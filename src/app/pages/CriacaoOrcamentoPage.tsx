@@ -260,7 +260,7 @@ function FormularioChapas({ bom, setBom }: { bom: BOM; setBom: (bom: BOM) => voi
           <Label>Espessura (mm)</Label>
           <Select 
             value={nova.espessuraMm?.toString()} 
-            onValueChange={(v) => setNova({ ...nova, espessuraMm: Number(v) })}
+            onValueChange={(v: string) => setNova({ ...nova, espessuraMm: Number(v) })}
           >
             <SelectTrigger>
               <SelectValue />
@@ -280,7 +280,7 @@ function FormularioChapas({ bom, setBom }: { bom: BOM; setBom: (bom: BOM) => voi
           <Label>Tipo de Inox</Label>
           <Select 
             value={nova.tipoInox} 
-            onValueChange={(v) => setNova({ ...nova, tipoInox: v as TipoInox })}
+            onValueChange={(v: string) => setNova({ ...nova, tipoInox: v as TipoInox })}
           >
             <SelectTrigger>
               <SelectValue />
@@ -378,7 +378,7 @@ function FormularioTubos({ bom, setBom, tubos }: { bom: BOM; setBom: (bom: BOM) 
 
         <div className="col-span-2">
           <Label>Tipo de Tubo</Label>
-          <Select value={novo.tuboId} onValueChange={(v) => setNovo({ ...novo, tuboId: v })}>
+          <Select value={novo.tuboId} onValueChange={(v: string) => setNovo({ ...novo, tuboId: v })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -404,7 +404,7 @@ function FormularioTubos({ bom, setBom, tubos }: { bom: BOM; setBom: (bom: BOM) 
 
         <div>
           <Label>Tipo de Inox</Label>
-          <Select value={novo.tipoInox} onValueChange={(v) => setNovo({ ...novo, tipoInox: v as TipoInox })}>
+          <Select value={novo.tipoInox} onValueChange={(v: string) => setNovo({ ...novo, tipoInox: v as TipoInox })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -484,7 +484,7 @@ function FormularioAcessorios({ bom, setBom, acessorios }: { bom: BOM; setBom: (
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2">
           <Label>Acessório</Label>
-          <Select value={novo.sku} onValueChange={(v) => setNovo({ ...novo, sku: v })}>
+          <Select value={novo.sku} onValueChange={(v: string) => setNovo({ ...novo, sku: v })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -581,7 +581,7 @@ function FormularioProcessos({ bom, setBom }: { bom: BOM; setBom: (bom: BOM) => 
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2">
           <Label>Tipo de Processo</Label>
-          <Select value={novo.tipo} onValueChange={(v) => setNovo({ ...novo, tipo: v })}>
+          <Select value={novo.tipo} onValueChange={(v: string) => setNovo({ ...novo, tipo: v })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>

@@ -309,7 +309,7 @@ export default function Perfil() {
                     <Switch
                       id="notificacoes"
                       checked={preferences.notificacoes}
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={(checked: boolean) =>
                         setPreferences({ ...preferences, notificacoes: checked })
                       }
                     />
@@ -325,7 +325,7 @@ export default function Perfil() {
                     <Switch
                       id="notificacoesEmail"
                       checked={preferences.notificacoesEmail}
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={(checked: boolean) =>
                         setPreferences({ ...preferences, notificacoesEmail: checked })
                       }
                     />
@@ -341,7 +341,7 @@ export default function Perfil() {
                     <Switch
                       id="notificacoesPush"
                       checked={preferences.notificacoesPush}
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={(checked: boolean) =>
                         setPreferences({ ...preferences, notificacoesPush: checked })
                       }
                     />

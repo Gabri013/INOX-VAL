@@ -1,3 +1,4 @@
+export * from "./auto";
 export * from "./database";
 export * from "./exportacao";
 export * from "./lote";

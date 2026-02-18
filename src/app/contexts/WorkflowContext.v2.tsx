@@ -11,35 +11,7 @@
  * - MantÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©m compatibilidade com cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo existente
  * - Adiciona loading states
  * 
- * MIGRAÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢O:
- * 1. Trocar import de WorkflowContext para WorkflowContext.v2
- * 2. Componentes que usam o context continuam funcionando
- * 3. Dados agora vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªm do Firebase automaticamente
- * 
- * ============================================================================
- */
-
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
-import {
-  Orcamento,
-  SolicitacaoCompra,
-  MovimentacaoEstoque,
-  WorkflowContextType
-} from "../types/workflow";
-import { useAuth } from "@/contexts/AuthContext";
-import { useOrcamentos } from "@/hooks/useOrcamentos";
-import { useOrdens } from "@/hooks/useOrdens";
-import { useAudit } from "./AuditContext";
-import { isModeloValido } from "@/bom/models";
-import { CHAPAS_PADRAO } from "@/domains/calculadora";
-import type { ResultadoCalculadora } from "@/domains/calculadora";
-import { estoqueMateriaisService } from "@/domains/estoque";
-import type { BOMItem } from "@/bom/types";
-
-const WorkflowContext = createContext<WorkflowContextType | undefined>(undefined);
-
-/**
- * VALIDAÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ES RUNTIME (mantidas)
+ * MIGRAÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ES RUNTIME (mantidas)
  */
 function validarOrcamento(orcamento: Partial<Orcamento>): { valido: boolean; erros: string[] } {
   const erros: string[] = [];
@@ -54,13 +26,13 @@ function validarOrcamento(orcamento: Partial<Orcamento>): { valido: boolean; err
 
   orcamento.itens?.forEach((item, index) => {
     if (!item.modeloId) {
-      erros.push(`Item ${index + 1}: modeloId ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© obrigatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rio`);
+      erros.push(`Item ${index + 1}: modeloId ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âé obrigatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rio`);
     } else if (!isModeloValido(item.modeloId)) {
       erros.push(`Item ${index + 1}: modeloId "${item.modeloId}" nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o existe no registry`);
     }
 
     if (!item.calculoSnapshot) {
-      erros.push(`Item ${index + 1}: calculoSnapshot ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© obrigatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rio`);
+      erros.push(`Item ${index + 1}: calculoSnapshot ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âé obrigatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rio`);
     } else {
       const snapshot = item.calculoSnapshot as ResultadoCalculadora;
       
@@ -182,7 +154,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
 
   const addOrdem = useCallback(async (_data: any) => {
     throw new Error(
-      "addOrdem nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© permitido. Use converterOrcamentoEmOrdem para criar ordens de produÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o."
+      "addOrdem nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃO ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âé permitido. Use converterOrcamentoEmOrdem para criar ordens de produÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o."
     );
   }, []);
 

@@ -112,7 +112,7 @@ export default function UsuariosApproval() {
         <Badge className="bg-info/15 text-info border border-info/30">
           {pendingCount} pendente(s)
         </Badge>
-        <Select value={statusFiltro} onValueChange={(value) => setStatusFiltro(value as any)}>
+        <Select value={statusFiltro} onValueChange={(value: string) => setStatusFiltro(value as any)}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Filtrar" />
           </SelectTrigger>
@@ -148,7 +148,7 @@ export default function UsuariosApproval() {
               <div className="flex flex-col md:flex-row gap-3 md:items-center">
                 <Select
                   value={normalizeRoleValue(roleUpdates[usuario.id] || usuario.role)}
-                  onValueChange={(value) => handleRoleChange(usuario.id, value)}
+                  onValueChange={(value: string) => handleRoleChange(usuario.id, value)}
                   disabled={statusFiltro !== 'pendente'}
                 >
                   <SelectTrigger className="w-[180px]">

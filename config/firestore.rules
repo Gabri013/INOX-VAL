@@ -1,6 +1,158 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(companyId) {
+      return isAuthenticated() && 
+             request.auth.token.companyId == companyId;
+    }
+    
+    function hasRole(role) {
+      return isAuthenticated() && 
+             request.auth.token.role in ['admin', role];
+    }
+    
+    function isAdmin() {
+      return hasRole('admin');
+    }
+    
+    function isManager() {
+      return hasRole('gerente');
+    }
+    
+    function isEngineer() {
+      return hasRole('engenheiro');
+    }
+    
+    function isSales() {
+      return hasRole('vendedor');
+    }
+    
+    function isProduction() {
+      return hasRole('producao');
+    }
+    
+    function canRead(companyId) {
+      return isOwner(companyId);
+    }
+    
+    function canWrite(companyId) {
+      return isOwner(companyId) && 
+             (isAdmin() || isManager() || isEngineer() || isSales());
+    }
+    
+    function canDelete(companyId) {
+      return isOwner(companyId) && (isAdmin() || isManager());
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && 
+                     (request.auth.uid == userId || 
+                      isOwner(resource.data.companyId));
+      allow create: if isAuthenticated() && 
+                       request.auth.token.role == 'admin';
+      allow update: if isAuthenticated() && 
+                       (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+    
+    // Companies collection
+    match /companies/{companyId} {
+      allow read: if isOwner(companyId);
+      allow write: if isAdmin();
+    }
+    
+    // Materials collection
+    match /materials/{materialId} {
+      allow read: if canRead(resource.data.companyId);
+      allow create: if canWrite(request.resource.data.companyId) && 
+                       (isAdmin() || isManager() || isEngineer());
+      allow update: if canWrite(resource.data.companyId) && 
+                       (isAdmin() || isManager() || isEngineer());
+      allow delete: if canDelete(resource.data.companyId);
+    }
+    
+    // Processes collection
+    match /processes/{processId} {
+      allow read: if canRead(resource.data.companyId);
+      allow create: if canWrite(request.resource.data.companyId) && 
+                       (isAdmin() || isManager() || isEngineer());
+      allow update: if canWrite(resource.data.companyId) && 
+                       (isAdmin() || isManager() || isEngineer());
+      allow delete: if canDelete(resource.data.companyId);
+    }
+    
+    // Quotes collection
+    match /quotes/{quoteId} {
+      allow read: if canRead(resource.data.companyId);
+      allow create: if canWrite(request.resource.data.companyId) && 
+                       (isAdmin() || isManager() || isSales() || isEngineer());
+      allow update: if canWrite(resource.data.companyId) && 
+                       (isAdmin() || isManager() || isSales() || isEngineer());
+      allow delete: if canDelete(resource.data.companyId);
+      
+      // Quote snapshots subcollection
+      match /snapshots/{snapshotId} {
+        allow read: if canRead(resource.data.companyId);
+        allow create: if canWrite(request.resource.data.companyId);
+        allow update: if false; // Snapshots are immutable
+        allow delete: if canDelete(resource.data.companyId);
+      }
+    }
+    
+    // Purchase plans collection
+    match /purchasePlans/{planId} {
+      allow read: if canRead(resource.data.companyId);
+      allow create: if canWrite(request.resource.data.companyId) && 
+                       (isAdmin() || isManager() || isEngineer());
+      allow update: if canWrite(resource.data.companyId) && 
+                       (isAdmin() || isManager() || isEngineer());
+      allow delete: if canDelete(resource.data.companyId);
+    }
+    
+    // Production orders collection
+    match /productionOrders/{orderId} {
+      allow read: if canRead(resource.data.companyId);
+      allow create: if canWrite(request.resource.data.companyId) && 
+                       (isAdmin() || isManager() || isEngineer());
+      allow update: if canWrite(resource.data.companyId) && 
+                       (isAdmin() || isManager() || isEngineer() || isProduction());
+      allow delete: if canDelete(resource.data.companyId);
+    }
+    
+    // Customers collection
+    match /customers/{customerId} {
+      allow read: if canRead(resource.data.companyId);
+      allow create: if canWrite(request.resource.data.companyId) && 
+                       (isAdmin() || isManager() || isSales());
+      allow update: if canWrite(resource.data.companyId) && 
+                       (isAdmin() || isManager() || isSales());
+      allow delete: if canDelete(resource.data.companyId);
+    }
+    
+    // Audit logs collection
+    match /auditLogs/{logId} {
+      allow read: if canRead(resource.data.companyId) && 
+                     (isAdmin() || isManager());
+      allow create: if isAuthenticated();
+      allow update: if false; // Audit logs are immutable
+      allow delete: if false; // Audit logs cannot be deleted
+    }
+    
+    // Settings collection
+    match /settings/{settingId} {
+      allow read: if canRead(resource.data.companyId);
+      allow write: if canWrite(resource.data.companyId) && 
+                      (isAdmin() || isManager());
+    }
+    
+    // Default deny
     match /{document=**} {
       allow read, write: if false;
     }

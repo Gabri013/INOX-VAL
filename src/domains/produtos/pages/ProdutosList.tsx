@@ -258,7 +258,7 @@ export default function ProdutosList() {
         newButtonLabel="Novo Produto"
         filterContent={
           <div className="flex gap-2">
-            <Select value={tipoFilter} onValueChange={(v) => setTipoFilter(v as any)}>
+            <Select value={tipoFilter} onValueChange={(v: string) => setTipoFilter(v as any)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
@@ -271,7 +271,7 @@ export default function ProdutosList() {
             
             <Select 
               value={ativoFilter === undefined ? 'all' : ativoFilter.toString()} 
-              onValueChange={(v) => setAtivoFilter(v === 'all' ? undefined : v === 'true')}
+              onValueChange={(v: string) => setAtivoFilter(v === 'all' ? undefined : v === 'true')}
             >
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Status" />

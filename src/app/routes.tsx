@@ -21,6 +21,8 @@ import Configuracoes from "./pages/Configuracoes";
 import PrecificacaoPublic from "./pages/PrecificacaoPublic";
 import SemAcesso from "./pages/SemAcesso";
 import PrecificacaoPage from "@/domains/precificacao/pages/Precificacao";
+import QuoteWizardPage from "./pages/QuoteWizardPage";
+import AutoQuotePage from "./pages/AutoQuotePage";
 
 // Importar pÃ¡ginas de Clientes e Produtos
 import { ClienteDetail, ClienteForm } from "@/domains/clientes";
@@ -123,6 +125,14 @@ export const router = createBrowserRouter([
       { 
         path: "orcamentos", 
         element: <ProtectedRoute requiredModule="orcamentos"><Orcamentos /></ProtectedRoute>
+      },
+      { 
+        path: "quotes/wizard", 
+        element: <ProtectedRoute requiredModule="orcamentos"><QuoteWizardPage /></ProtectedRoute>
+      },
+      { 
+        path: "orcamento-automatico", 
+        element: <ProtectedRoute requiredModule="orcamentos"><AutoQuotePage /></ProtectedRoute>
       },
       { 
         path: "ordens", 

@@ -67,7 +67,7 @@ export default function NestingVisualizer({ nesting }: NestingVisualizerProps) {
       <CardContent>
         {/* SELETOR DE GRUPOS */}
         {nesting.length > 1 && (
-          <Tabs value={grupoSelecionado.toString()} onValueChange={(v) => {
+          <Tabs value={grupoSelecionado.toString()} onValueChange={(v: string) => {
             setGrupoSelecionado(Number(v));
             setChapaSelecionada(0);
           }}>

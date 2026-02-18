@@ -14,7 +14,6 @@ import { toast } from 'sonner';
 import { DollarSign, Save, Building2, Calculator } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConfiguracaoAtiva, useSalvarConfiguracao } from '@/hooks/useConfiguracoes';
-import { VALORES_PADRAO } from '@/domains/calculadora';
 import { custosService } from '@/domains/custos';
 
 export default function Configuracoes() {

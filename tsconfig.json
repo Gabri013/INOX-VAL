@@ -27,6 +27,6 @@
       "@/app/domains/calculadora/*": ["./src/app/domains/calculadora/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "vitest.config.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

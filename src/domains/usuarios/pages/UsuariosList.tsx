@@ -178,7 +178,7 @@ export default function UsuariosList() {
               <label className="text-sm font-medium">Função</label>
               <Select
                 value={filters.role || ''}
-                onValueChange={(value) =>
+                onValueChange={(value: string) =>
                   setFilters({ ...filters, role: value as any || undefined })
                 }
               >
@@ -204,7 +204,7 @@ export default function UsuariosList() {
               <label className="text-sm font-medium">Status</label>
               <Select
                 value={filters.status || ''}
-                onValueChange={(value) =>
+                onValueChange={(value: string) =>
                   setFilters({ ...filters, status: value as any || undefined })
                 }
               >

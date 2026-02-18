@@ -244,7 +244,7 @@ export default function MinhasConfiguracoes() {
                     />
                     <Select
                       value={precosMateriais[material].unidade || 'kg'}
-                      onValueChange={(v) => updatePrecoMaterial(material, { unidade: v as 'kg' | 'm' | 'm2' | 'un' })}
+                      onValueChange={(v: string) => updatePrecoMaterial(material, { unidade: v as 'kg' | 'm' | 'm2' | 'un' })}
                     >
                       <SelectTrigger className="w-16">
                         <SelectValue />
@@ -379,7 +379,7 @@ export default function MinhasConfiguracoes() {
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label>Material Padrão</Label>
-                  <Select value={materialPadrao} onValueChange={(v) => setMaterialPadrao(v as TipoMaterialInox)}>
+                  <Select value={materialPadrao} onValueChange={(v: string) => setMaterialPadrao(v as TipoMaterialInox)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -395,7 +395,7 @@ export default function MinhasConfiguracoes() {
 
                 <div className="space-y-2">
                   <Label>Acabamento Padrão</Label>
-                  <Select value={acabamentoPadrao} onValueChange={(v) => setAcabamentoPadrao(v as TipoAcabamento)}>
+                  <Select value={acabamentoPadrao} onValueChange={(v: string) => setAcabamentoPadrao(v as TipoAcabamento)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -411,7 +411,7 @@ export default function MinhasConfiguracoes() {
 
                 <div className="space-y-2">
                   <Label>Espessura Padrão (mm)</Label>
-                  <Select value={espessuraPadrao.toString()} onValueChange={(v) => setEspessuraPadrao(parseFloat(v))}>
+                  <Select value={espessuraPadrao.toString()} onValueChange={(v: string) => setEspessuraPadrao(parseFloat(v))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -427,7 +427,7 @@ export default function MinhasConfiguracoes() {
 
                 <div className="space-y-2">
                   <Label>Embalagem Padrão</Label>
-                  <Select value={embalagemPadrao} onValueChange={(v) => setEmbalagemPadrao(v as TipoEmbalagem)}>
+                  <Select value={embalagemPadrao} onValueChange={(v: string) => setEmbalagemPadrao(v as TipoEmbalagem)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -463,7 +463,7 @@ export default function MinhasConfiguracoes() {
                   <div className="flex items-center gap-4 flex-1">
                     <Switch
                       checked={emb.ativo}
-                      onCheckedChange={(checked) => updateEmbalagem(index, 'ativo', checked)}
+                      onCheckedChange={(checked: boolean) => updateEmbalagem(index, 'ativo', checked)}
                     />
                     <div className="flex-1">
                       <Label className="text-base">{EMBALAGEM_LABELS[emb.tipo]}</Label>

@@ -103,7 +103,7 @@ export default function PermissoesPorFuncao() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium">Função</span>
-            <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
+            <Select value={role} onValueChange={(value: string) => setRole(value as UserRole)}>
               <SelectTrigger className="w-[220px]">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>

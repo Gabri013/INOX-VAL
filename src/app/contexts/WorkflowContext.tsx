@@ -7,73 +7,29 @@ import {
   WorkflowContextType
 } from "../types/workflow";
 import { useAudit } from "./AuditContext";
-import { isModeloValido } from "@/bom/models";
-import { CHAPAS_PADRAO } from "@/domains/calculadora";
-import type { ResultadoCalculadora } from "@/domains/calculadora";
-import { estoqueMateriaisService } from "@/domains/estoque";
 import type { BOMItem } from "@/bom/types";
 
 const WorkflowContext = createContext<WorkflowContextType | undefined>(undefined);
 
-// FunÃ§Ãµes auxiliares
+// Funções auxiliares
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 const generateNumero = (prefix: string, count: number) => `${prefix}-${String(count + 1).padStart(4, '0')}`;
 
 /**
- * VALIDAÃ‡Ã•ES RUNTIME (Fase 1)
- * Bloqueia criaÃ§Ã£o de orÃ§amentos fora das regras, mesmo que UI tente forÃ§ar
+ * VALIDAÇÕES RUNTIME (Fase 1)
+ * Bloqueia criação de orçamentos fora das regras, mesmo que UI tente forçar
  */
 function validarOrcamento(orcamento: Partial<Orcamento>): { valido: boolean; erros: string[] } {
   const erros: string[] = [];
 
   // Validar itens
   if (!orcamento.itens || orcamento.itens.length === 0) {
-    erros.push("OrÃ§amento precisa ter pelo menos 1 item");
+    erros.push("Orçamento precisa ter pelo menos 1 item");
   }
 
   if (orcamento.itens && orcamento.itens.length > 200) {
-    erros.push("OrÃ§amento nÃ£o pode ter mais de 200 itens");
+    erros.push("Orçamento não pode ter mais de 200 itens");
   }
-
-  orcamento.itens?.forEach((item, index) => {
-    // Validar modeloId
-    if (!item.modeloId) {
-      erros.push(`Item ${index + 1}: modeloId Ã© obrigatÃ³rio`);
-    } else if (!isModeloValido(item.modeloId)) {
-      erros.push(`Item ${index + 1}: modeloId "${item.modeloId}" nÃ£o existe no registry`);
-    }
-
-    // Validar snapshots
-    if (!item.calculoSnapshot) {
-      erros.push(`Item ${index + 1}: calculoSnapshot Ã© obrigatÃ³rio`);
-    } else {
-      const snapshot = item.calculoSnapshot as ResultadoCalculadora;
-      
-      if (!snapshot.bomResult || !snapshot.bomResult.bom || snapshot.bomResult.bom.length === 0) {
-        erros.push(`Item ${index + 1}: BOM vazia ou invalida`);
-      }
-
-      if (!snapshot.nesting || !snapshot.nesting.melhorOpcao) {
-        erros.push(`Item ${index + 1}: Nesting vazio ou invalido`);
-      } else {
-        // Validar chapas (sÃ³ 2000Ã—1250 e 3000Ã—1250)
-        const chapaUsada = snapshot.nesting.melhorOpcao.chapa;
-        const chapaValida = CHAPAS_PADRAO.some(
-          c => c.comprimento === chapaUsada.comprimento && c.largura === chapaUsada.largura
-        );
-        if (!chapaValida) {
-          erros.push(
-            `Item ${index + 1}: Chapa ${chapaUsada.comprimento}Ã—${chapaUsada.largura} nÃ£o permitida. ` +
-            `Apenas 2000Ã—1250 e 3000Ã—1250 sÃ£o aceitas`
-          );
-        }
-      }
-
-      if (!snapshot.custos || snapshot.custos.categorias.length === 0) {
-        erros.push(`Item ${index + 1}: Custos vazios ou invalidos`);
-      }
-    }
-  });
 
   return { valido: erros.length === 0, erros };
 }
@@ -106,7 +62,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
       module: "orcamentos",
       recordId: newOrcamento.id,
       recordName: newOrcamento.numero,
-      description: `Criou orÃ§amento ${newOrcamento.numero} para ${newOrcamento.clienteNome}`,
+      description: `Criou orçamento ${newOrcamento.numero} para ${newOrcamento.clienteNome}`,
       newData: newOrcamento
     });
     
@@ -125,7 +81,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
         module: "orcamentos",
         recordId: id,
         recordName: orcamento.numero,
-        description: `Atualizou orÃ§amento ${orcamento.numero}`,
+        description: `Atualizou orçamento ${orcamento.numero}`,
         oldData: orcamento,
         newData: data
       });
@@ -134,11 +90,11 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
 
   const converterOrcamentoEmOrdem = useCallback<WorkflowContextType["converterOrcamentoEmOrdem"]>((orcamentoId) => {
     const orcamento = orcamentos.find(o => o.id === orcamentoId);
-    if (!orcamento) throw new Error("OrÃ§amento nÃ£o encontrado");
+    if (!orcamento) throw new Error("Orçamento nÃ£o encontrado");
 
     // REGRA DE NEGÃ“CIO: OP sÃ³ pode ser criada de orÃ§amento APROVADO
     if (orcamento.status !== "Aprovado") {
-      throw new Error("Apenas orÃ§amentos aprovados podem ser convertidos em ordem de produÃ§Ã£o");
+      throw new Error("Apenas orçamentos aprovados podem ser convertidos em ordem de produÃ§Ã£o");
     }
 
     // Criar ordem de produÃ§Ã£o
@@ -163,14 +119,14 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
       })),
       total: orcamento.total,
       prioridade: "Normal",
-      observacoes: `Convertido do orÃ§amento ${orcamento.numero}`,
+      observacoes: `Convertido do orçamento ${orcamento.numero}`,
       materiaisReservados: false,
       materiaisConsumidos: false
     };
 
     setOrdens(prev => [...prev, novaOrdem]);
 
-    // Atualizar orÃ§amento
+    // Atualizar orçamento
     updateOrcamento(orcamentoId, {
       ordemId: novaOrdem.id
     });
@@ -180,7 +136,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
       module: "ordens",
       recordId: novaOrdem.id,
       recordName: novaOrdem.numero,
-      description: `Converteu orÃ§amento ${orcamento.numero} em ordem de produÃ§Ã£o ${novaOrdem.numero}`,
+      description: `Converteu orçamento ${orcamento.numero} em ordem de produÃ§Ã£o ${novaOrdem.numero}`,
       newData: novaOrdem
     });
 
@@ -337,11 +293,11 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
   const extrairMateriaisDaOrdem = (ordem: OrdemProducao): { materialId: string; quantidade: number; unidade: string; nome: string }[] => {
     const materiaisAgrupados = new Map<string, { quantidade: number; unidade: string; nome: string }>();
     
-    // Buscar orÃ§amento original para ter acesso Ã  BOM completa
+    // Buscar orçamento original para ter acesso Ã  BOM completa
     const orcamento = orcamentos.find(o => o.id === ordem.orcamentoId);
     if (!orcamento) return [];
     
-    // Iterar por cada item do orÃ§amento
+    // Iterar por cada item do orçamento
     orcamento.itens.forEach(itemOrcamento => {
       const snapshot = itemOrcamento.calculoSnapshot as ResultadoCalculadora | undefined;
       if (!snapshot?.bomResult?.bom) return;

@@ -2,9 +2,6 @@
  * Tipos do módulo de Orçamentos (Workflow)
  */
 
-import type { ResultadoCalculadora } from '@/domains/calculadora/types';
-import type { OpPricingSnapshot } from '@/domains/precificacao/types/opPricing';
-
 // ========================================
 // TIPOS BASE
 // ========================================
@@ -59,7 +56,7 @@ export interface ItemOrcamento {
   precoUnitario: number;
   subtotal: number;
   /** Snapshot do cálculo completo (BOM + Nesting + Precificação) */
-  calculoSnapshot?: ResultadoCalculadora;
+  // calculoSnapshot?: ResultadoCalculadora;
 }
 
 // ========================================

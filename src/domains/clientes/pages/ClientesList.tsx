@@ -1,6 +1,6 @@
 /**
- * Página de listagem de Clientes
- * Usa ListPage para consistência visual com outras páginas
+ * Pï¿½gina de listagem de Clientes
+ * Usa ListPage para consistï¿½ncia visual com outras pï¿½ginas
  */
 
 import { useState } from 'react';
@@ -25,7 +25,7 @@ export default function ClientesList() {
   const navigate = useNavigate();
   const { logCreate, logDelete, logView } = useModuleAudit('clientes');
   
-  // Estado de filtros e paginação
+  // Estado de filtros e paginaï¿½ï¿½o
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<ClienteStatus | 'all'>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,7 +35,7 @@ export default function ClientesList() {
     ? "Nenhum cliente encontrado para os filtros. Limpe filtros."
     : "Nenhum cliente cadastrado";
   
-  // Estado do dialog de confirmação
+  // Estado do dialog de confirmaï¿½ï¿½o
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
     clienteId: string | null;
@@ -100,7 +100,7 @@ export default function ClientesList() {
     }
   };
   
-  // Estatísticas
+  // Estatï¿½sticas
   const statsData = [
     {
       title: "Total de Clientes",
@@ -167,7 +167,7 @@ export default function ClientesList() {
     },
   ];
   
-  // Ações por linha
+  // Aï¿½ï¿½es por linha
   const actions = [
     {
       icon: Eye,
@@ -186,7 +186,7 @@ export default function ClientesList() {
     }
   ];
   
-  // Renderizar célula customizada
+  // Renderizar cï¿½lula customizada
   const renderCell = (cliente: Cliente, columnKey: string) => {
     switch (columnKey) {
       case 'nome':
@@ -244,7 +244,7 @@ export default function ClientesList() {
         onNew={handleCreate}
         newButtonLabel="Novo Cliente"
         filterContent={
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+          <Select value={statusFilter} onValueChange={(v: string) => setStatusFilter(v as any)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
@@ -268,14 +268,14 @@ export default function ClientesList() {
         showPagination={true}
       />
 
-      {/* Dialog de confirmação de exclusão */}
+      {/* Dialog de confirmaï¿½ï¿½o de exclusï¿½o */}
       <ConfirmDialog
         open={deleteConfirm.open}
         onOpenChange={(open) =>
           setDeleteConfirm({ ...deleteConfirm, open })
         }
         title="Excluir Cliente"
-        description={`Tem certeza que deseja excluir o cliente "${deleteConfirm.clienteNome}"? Esta ação não pode ser desfeita.`}
+        description={`Tem certeza que deseja excluir o cliente "${deleteConfirm.clienteNome}"? Esta aï¿½ï¿½o nï¿½o pode ser desfeita.`}
         onConfirm={handleDeleteConfirm}
         confirmLabel="Excluir"
         variant="destructive"

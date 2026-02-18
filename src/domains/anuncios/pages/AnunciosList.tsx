@@ -152,7 +152,7 @@ export default function AnunciosList() {
               <label className="text-sm font-medium">Tipo</label>
               <Select
                 value={filters.tipo || ""}
-                onValueChange={(value) =>
+                onValueChange={(value: string) =>
                   setFilters({ ...filters, tipo: (value as any) || undefined })
                 }
               >
@@ -173,7 +173,7 @@ export default function AnunciosList() {
               <label className="text-sm font-medium">Status</label>
               <Select
                 value={filters.status || ""}
-                onValueChange={(value) =>
+                onValueChange={(value: string) =>
                   setFilters({ ...filters, status: (value as any) || undefined })
                 }
               >

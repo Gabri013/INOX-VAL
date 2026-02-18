@@ -191,7 +191,7 @@ export default function ProdutoForm() {
               <Label htmlFor="tipo">Tipo *</Label>
               <Select
                 value={formData.tipo}
-                onValueChange={(value) => handleChange('tipo', value as ProdutoTipo)}
+                onValueChange={(value: string) => handleChange('tipo', value as ProdutoTipo)}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -237,7 +237,7 @@ export default function ProdutoForm() {
               <Label htmlFor="unidade">Unidade de Medida *</Label>
               <Select
                 value={formData.unidade}
-                onValueChange={(value) => handleChange('unidade', value as ProdutoUnidade)}
+                onValueChange={(value: string) => handleChange('unidade', value as ProdutoUnidade)}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -307,7 +307,7 @@ export default function ProdutoForm() {
               <Switch
                 id="ativo"
                 checked={formData.ativo}
-                onCheckedChange={(checked) => handleChange('ativo', checked)}
+                onCheckedChange={(checked: boolean) => handleChange('ativo', checked)}
               />
               <Label htmlFor="ativo" className="cursor-pointer">
                 Produto ativo no catálogo

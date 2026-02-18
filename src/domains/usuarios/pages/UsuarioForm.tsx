@@ -192,7 +192,7 @@ export default function UsuarioForm() {
               </Label>
               <Select
                 value={roleValue}
-                onValueChange={(value) => setValue('role', value as any)}
+                onValueChange={(value: string) => setValue('role', value as any)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione a função" />
@@ -220,7 +220,7 @@ export default function UsuarioForm() {
               </Label>
               <Select
                 value={statusValue}
-                onValueChange={(value) => setValue('status', value as any)}
+                onValueChange={(value: string) => setValue('status', value as any)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o status" />

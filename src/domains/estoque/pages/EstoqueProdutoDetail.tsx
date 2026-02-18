@@ -176,7 +176,7 @@ export default function EstoqueProdutoDetail() {
       searchValue={search}
       onSearchChange={setSearch}
       filterContent={
-        <Select value={tipo} onValueChange={(value) => setTipo(value as any)}>
+        <Select value={tipo} onValueChange={(value: string) => setTipo(value as any)}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Tipo de movimento" />
           </SelectTrigger>

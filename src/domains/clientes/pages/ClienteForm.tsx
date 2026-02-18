@@ -206,7 +206,7 @@ export default function ClienteForm() {
               <Label htmlFor="status">Status *</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value) => handleChange('status', value as ClienteStatus)}
+                onValueChange={(value: string) => handleChange('status', value as ClienteStatus)}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -280,7 +280,7 @@ export default function ClienteForm() {
               <Label htmlFor="estado">Estado *</Label>
               <Select
                 value={formData.estado}
-                onValueChange={(value) => handleChange('estado', value)}
+                onValueChange={(value: string) => handleChange('estado', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o estado" />

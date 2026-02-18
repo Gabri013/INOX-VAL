@@ -199,7 +199,7 @@ export default function EstoqueMovimentoForm() {
             <Label htmlFor="produto">Material *</Label>
             <Select
               value={formData.produtoId}
-              onValueChange={(value) => handleChange("produtoId", value)}
+              onValueChange={(value: string) => handleChange("produtoId", value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um material" />
@@ -221,7 +221,7 @@ export default function EstoqueMovimentoForm() {
             <Label htmlFor="tipo">Tipo *</Label>
             <Select
               value={formData.tipo}
-              onValueChange={(value) => handleChange("tipo", value as MovimentoTipo)}
+              onValueChange={(value: string) => handleChange("tipo", value as MovimentoTipo)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -251,7 +251,7 @@ export default function EstoqueMovimentoForm() {
             <Label htmlFor="unidade">Unidade de Lançamento *</Label>
             <Select
               value={formData.unidadeLancada || unidadeBase}
-              onValueChange={(value) => handleChange("unidadeLancada", value)}
+              onValueChange={(value: string) => handleChange("unidadeLancada", value)}
               disabled={!produtoSelecionado}
             >
               <SelectTrigger>
